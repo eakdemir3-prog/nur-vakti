@@ -122,7 +122,7 @@ fun RamazanHatimScreen(
             }
 
             // 1b. Ramazan durumu + iftar/sahur geri sayımı + imsakiye
-            item {
+            if (ramadan.isRamadan || ramadan.daysUntilRamadan > 0) item {
                 val times = schedule?.prayerTimes
                 val now = System.currentTimeMillis()
                 val imsakMs = times?.firstOrNull { it.type.name == "IMSAK" }?.timestampMillis ?: 0L

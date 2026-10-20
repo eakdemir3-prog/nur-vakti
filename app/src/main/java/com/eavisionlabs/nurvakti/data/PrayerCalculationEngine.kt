@@ -8,6 +8,7 @@ import com.eavisionlabs.nurvakti.model.PrayerType
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
+import com.eavisionlabs.nurvakti.i18n.t
 import kotlin.math.*
 
 /**
@@ -148,7 +149,7 @@ object PrayerCalculationEngine {
 
     fun getHijriDate(calendar: Calendar): String {
         val (d, m, y) = hijriParts(calendar)
-        return "$d ${hijriMonthsTr[m - 1]} $y"
+        return "$d ${t(hijriMonthsTr[m - 1])} $y"
     }
 
     // --- Ekran modelleri ----------------------------------------------------
@@ -194,7 +195,7 @@ object PrayerCalculationEngine {
         return DailyPrayerSchedule(
             cityName = city.displayName,
             districtName = city.country,
-            gregorianDateFormatted = "$d ${turkishMonthNames[mo - 1]} $y ${turkishDayNames[local.get(Calendar.DAY_OF_WEEK)]}",
+            gregorianDateFormatted = "$d ${t(turkishMonthNames[mo - 1])} $y ${t(turkishDayNames[local.get(Calendar.DAY_OF_WEEK)])}",
             hijriDateFormatted = getHijriDate(local),
             prayerTimes = updated,
             nextPrayer = nextPrayer,

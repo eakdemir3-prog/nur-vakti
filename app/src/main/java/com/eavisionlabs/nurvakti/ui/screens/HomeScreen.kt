@@ -99,7 +99,7 @@ fun HomeScreen(
                         text = t("Esselâmu Aleyküm ve Rahmetullâh"),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold,
-                            color = GoldLight
+                            color = Color(0xFFEAD8A6)
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -107,7 +107,7 @@ fun HomeScreen(
                     Text(
                         text = t("Bugün kalbine ve vaktine huzurla başla."),
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = CreamWhite.copy(alpha = 0.9f)
+                            color = Color(0xFFF7F4EC).copy(alpha = 0.9f)
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

@@ -215,7 +215,7 @@ fun ExploreScreen(
                                 maxLines = 1
                             )
                             Text(
-                                text = if (uiState.isPremiumActive) "Üyeliğiniz aktif • Tüm özellikler açık" else "Kâbe Kiswa teması & hatim stüdyosuna geçin",
+                                text = if (uiState.isPremiumActive) t("Pro ayrıcalıklarınız açık") else t("Kâbe Örtüsü teması, hıfz modu ve aylık analizler"),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 ),
