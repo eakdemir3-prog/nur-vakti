@@ -42,10 +42,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          grep -E "^e: |error:|FAILED|What went wrong|expected:|AssertionError|Exception" -A3 build.log > errors.txt || true
-          find app/build/test-results -name "*.xml" -exec cat {} + > tests.xml 2>/dev/null || true
-          gh release create "log-${{ github.run_number }}" build.log errors.txt tests.xml \
-            --target "${{ github.sha }}" --prerelease --title "CI log #${{ github.run_number }}" --notes "failed build log"
+          echo "run ${{ github.run_number }}" > errors.txt
+          grep -E "^e: |error:|FAILED|What went wrong|AssertionError" -A3 build.log >> errors.txt || true
+          for f in $(find app/build/test-results -name "*.xml" 2>/dev/null); do cat "$f" >> errors.txt; done
+          gzip -k build.log
+          gh release create "log-${{ github.run_number }}" errors.txt build.log.gz \
+            --target "${{ github.sha }}" --prerelease --title "CI log #${{ github.run_number }}" --notes "failed build log" \
+          || { git config user.name ci; git config user.email ci@users.noreply.github.com; git checkout -b ci-log-${{ github.run_number }}; git add -f errors.txt; git commit -m log; git push origin ci-log-${{ github.run_number }}; }
 
       - name: Collect outputs
         run: |
