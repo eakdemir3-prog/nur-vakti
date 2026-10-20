@@ -186,14 +186,14 @@ fun CityPickerDialog(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(
-                                        text = city.name,
+                                        text = city.displayName,
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                     )
                                     Text(
-                                        text = city.country,
+                                        text = if (city.province.isNotBlank()) "${city.province} • ${city.country}" else city.country,
                                         style = MaterialTheme.typography.bodySmall.copy(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )

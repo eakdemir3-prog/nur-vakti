@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.eavisionlabs.nurvakti.ui.UiState
+import com.eavisionlabs.nurvakti.i18n.t
 import com.eavisionlabs.nurvakti.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,8 +41,13 @@ fun TasbihScreen(
     onSetResetDialogOpen: (Boolean) -> Unit,
     onSetTarget: (Int) -> Unit,
     onSelectPreset: (String, String, String, Int) -> Unit,
+    onSetAddDialogOpen: (Boolean) -> Unit = {},
+    onAddCustom: (String, String, String, Int) -> Unit = { _, _, _, _ -> },
+    onRemoveCustom: (String) -> Unit = {},
+    onSetVibration: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var showHistory by remember { mutableStateOf(false) }
     BackHandler { onBack() }
 
     var buttonPressed by remember { mutableStateOf(false) }
@@ -63,13 +69,22 @@ fun TasbihScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dijital Tesbih (Zikirmatik)", fontWeight = FontWeight.Bold, color = GoldLight) },
+                title = { Text(t("Dijital Tesbih"), fontWeight = FontWeight.Bold, color = GoldLight) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = GoldChampagne)
                     }
                 },
                 actions = {
+                    IconButton(onClick = { onSetVibration(!uiState.tasbihVibration) }) {
+                        Icon(
+                            if (uiState.tasbihVibration) Icons.Default.Vibration else Icons.Default.PhonelinkErase,
+                            contentDescription = t("Titreşim"), tint = if (uiState.tasbihVibration) GoldChampagne else SoftGrey
+                        )
+                    }
+                    IconButton(onClick = { showHistory = true }) {
+                        Icon(Icons.Default.BarChart, contentDescription = t("Geçmiş"), tint = GoldChampagne)
+                    }
                     IconButton(onClick = { onSetResetDialogOpen(true) }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Sıfırla", tint = SoftGrey)
                     }
@@ -91,7 +106,7 @@ fun TasbihScreen(
             // Preset Dhikrs Row
             Column {
                 Text(
-                    text = "Hazır Zikirler",
+                    text = t("Zikirler"),
                     style = MaterialTheme.typography.labelMedium.copy(color = SoftGrey),
                     modifier = Modifier.padding(bottom = 6.dp)
                 )
@@ -100,6 +115,32 @@ fun TasbihScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    items(uiState.customDhikrs) { c ->
+                        val title = c[0]
+                        val isSelected = uiState.selectedDhikrTitle == title
+                        InputChip(
+                            selected = isSelected,
+                            onClick = { onSelectPreset(title, c[1], c[2], c[3].toIntOrNull() ?: 33) },
+                            label = { Text(title) },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Close, contentDescription = t("Sil"),
+                                    modifier = Modifier.size(16.dp).clickable { onRemoveCustom(title) }
+                                )
+                            },
+                            colors = InputChipDefaults.inputChipColors(
+                                selectedContainerColor = GoldChampagne,
+                                selectedLabelColor = EmeraldDarkest
+                            )
+                        )
+                    }
+                    item {
+                        AssistChip(
+                            onClick = { onSetAddDialogOpen(true) },
+                            label = { Text(t("Zikir ekle")) },
+                            leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        )
+                    }
                     items(presets) { (title, arabic, meaning) ->
                         val isSelected = uiState.selectedDhikrTitle == title
                         FilterChip(
@@ -294,6 +335,48 @@ fun TasbihScreen(
                     Text("Vazgeç")
                 }
             }
+        )
+    }
+
+    if (uiState.isAddCustomDhikrDialogOpen) {
+        var title by remember { mutableStateOf("") }
+        var arabic by remember { mutableStateOf("") }
+        var meaning by remember { mutableStateOf("") }
+        var target by remember { mutableStateOf("33") }
+        AlertDialog(
+            onDismissRequest = { onSetAddDialogOpen(false) },
+            title = { Text(t("Kendi zikrinizi ekleyin")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(title, { title = it }, label = { Text(t("Zikir adı (ör. Hasbünallah)")) }, singleLine = true)
+                    OutlinedTextField(arabic, { arabic = it }, label = { Text(t("Arapça (isteğe bağlı)")) }, singleLine = true)
+                    OutlinedTextField(meaning, { meaning = it }, label = { Text(t("Anlamı (isteğe bağlı)")) })
+                    OutlinedTextField(
+                        target, { v -> target = v.filter { it.isDigit() }.take(6) },
+                        label = { Text(t("Hedef sayı")) }, singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { onAddCustom(title, arabic, meaning, target.toIntOrNull() ?: 33) }, enabled = title.isNotBlank()) { Text(t("Ekle")) }
+            },
+            dismissButton = { TextButton(onClick = { onSetAddDialogOpen(false) }) { Text(t("Vazgeç")) } }
+        )
+    }
+
+    if (showHistory) {
+        AlertDialog(
+            onDismissRequest = { showHistory = false },
+            title = { Text(t("Zikir geçmişi (7 gün)")) },
+            text = {
+                Column {
+                    com.eavisionlabs.nurvakti.ui.components.BarChart(uiState.dhikrWeek, maxValue = 100)
+                    Spacer(Modifier.height(8.dp))
+                    Text(String.format(t("Bugün: %1$d • Bu hafta: %2$d"), uiState.todayDhikrCompletedTotal, uiState.dhikrWeek.sumOf { it.value }))
+                }
+            },
+            confirmButton = { TextButton(onClick = { showHistory = false }) { Text(t("Kapat")) } }
         )
     }
 }

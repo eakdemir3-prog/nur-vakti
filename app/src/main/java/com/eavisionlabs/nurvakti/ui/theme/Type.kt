@@ -34,3 +34,6 @@ val Typography =
     )
     */
   )
+
+/** Kur'an metni için Amiri Quran yazı tipi (SIL OFL) — Osmanlı hattındaki tüm işaretleri destekler. */
+val QuranFont = FontFamily(androidx.compose.ui.text.font.Font(com.eavisionlabs.nurvakti.R.font.amiri_quran))

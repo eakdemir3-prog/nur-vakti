@@ -90,7 +90,7 @@ fun QiblaScreen(
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "${uiState.selectedCity.name}: Kâbe Açısı ${smoothQiblaBearing.roundToInt()}°",
+                            text = "${uiState.selectedCity.displayName}: Kâbe Açısı ${smoothQiblaBearing.roundToInt()}°",
                             style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                         )
                     }

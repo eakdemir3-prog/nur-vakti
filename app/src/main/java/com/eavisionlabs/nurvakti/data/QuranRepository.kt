@@ -1,8 +1,17 @@
 package com.eavisionlabs.nurvakti.data
 
+import android.content.Context
+import com.eavisionlabs.nurvakti.i18n.I18n
 import com.eavisionlabs.nurvakti.model.Ayah
 import com.eavisionlabs.nurvakti.model.Surah
+import java.util.Locale
 
+/**
+ * Kur'an-ı Kerim'in tamamı (114 sure, 6236 ayet) cihazda, internetsiz.
+ * Arapça metin: Kur'an Ansiklopedisi (quranenc.com) Osmanlı hattı.
+ * Türkçe meal: Diyanet İşleri Başkanlığı (tanzil.net), İngilizce: Saheeh International (tanzil.net).
+ * Sayfa/cüz bilgisi Medine Mushafı (604 sayfa) esas alınarak hesaplanmıştır.
+ */
 object QuranRepository {
 
     val surahs: List<Surah> = listOf(
@@ -122,202 +131,166 @@ object QuranRepository {
         Surah(114, "النَّاس", "Nâs", "İnsanlar", 6, "Mekki", 21, 604, 30)
     )
 
+    const val TOTAL_AYAHS = 6236
+    const val TOTAL_PAGES = 604
+
+    private var appContext: Context? = null
+    @Volatile private var loaded = false
+    private lateinit var surahOf: IntArray
+    private lateinit var ayahOf: IntArray
+    private lateinit var pageOf: IntArray
+    private lateinit var juzOf: IntArray
+    private lateinit var arabic: Array<String>
+    private var mealLang: String = ""
+    private var meal: Array<String> = emptyArray()
+    /** surahStart[n] = sure n'nin ilk ayetinin genel sırası (0 tabanlı) */
+    private val surahStart = IntArray(116)
+
+    fun init(context: Context) {
+        if (appContext == null) appContext = context.applicationContext
+    }
+
+    @Synchronized
+    private fun ensureLoaded() {
+        if (!loaded) {
+            val ctx = appContext ?: throw IllegalStateException("QuranRepository.init çağrılmadı")
+            val s = IntArray(TOTAL_AYAHS); val a = IntArray(TOTAL_AYAHS)
+            val p = IntArray(TOTAL_AYAHS); val j = IntArray(TOTAL_AYAHS)
+            val ar = arrayOfNulls<String>(TOTAL_AYAHS)
+            var i = 0
+            ctx.assets.open("quran/arabic.txt").bufferedReader(Charsets.UTF_8).forEachLine { line ->
+                if (i >= TOTAL_AYAHS || line.isBlank()) return@forEachLine
+                val parts = line.split('|', limit = 5)
+                s[i] = parts[0].toInt(); a[i] = parts[1].toInt(); p[i] = parts[2].toInt(); j[i] = parts[3].toInt()
+                ar[i] = parts[4]
+                i++
+            }
+            surahOf = s; ayahOf = a; pageOf = p; juzOf = j
+            @Suppress("UNCHECKED_CAST")
+            arabic = ar as Array<String>
+            var last = 0
+            for (k in 0 until TOTAL_AYAHS) if (s[k] != last) { last = s[k]; surahStart[last] = k }
+            surahStart[115] = TOTAL_AYAHS
+            loaded = true
+        }
+        val wanted = if (I18n.language == "tr") "tr" else "en"
+        if (mealLang != wanted) {
+            val ctx = appContext!!
+            meal = ctx.assets.open("quran/meal_$wanted.txt").bufferedReader(Charsets.UTF_8).readLines().toTypedArray()
+            mealLang = wanted
+        }
+    }
+
+    private fun ayahAt(idx: Int) = Ayah(
+        surahNumber = surahOf[idx],
+        ayahNumber = ayahOf[idx],
+        textArabic = arabic[idx],
+        translationTr = meal.getOrElse(idx) { "" },
+        page = pageOf[idx],
+        juz = juzOf[idx]
+    )
+
+    fun getVersesForSurah(surahNumber: Int): List<Ayah> {
+        if (surahNumber !in 1..114) return emptyList()
+        ensureLoaded()
+        return (surahStart[surahNumber] until surahStart[surahNumber + 1]).map { ayahAt(it) }
+    }
+
+    fun getAyah(surah: Int, ayah: Int): Ayah? {
+        if (surah !in 1..114) return null
+        ensureLoaded()
+        val idx = surahStart[surah] + ayah - 1
+        return if (idx < surahStart[surah + 1] && ayah >= 1) ayahAt(idx) else null
+    }
+
+    fun versesForPage(page: Int): List<Ayah> {
+        ensureLoaded()
+        return (0 until TOTAL_AYAHS).filter { pageOf[it] == page }.map { ayahAt(it) }
+    }
+
+    fun versesForJuz(juz: Int): List<Ayah> {
+        ensureLoaded()
+        return (0 until TOTAL_AYAHS).filter { juzOf[it] == juz }.map { ayahAt(it) }
+    }
+
+    /** Cüzün başladığı (sure, ayet) */
+    fun juzStart(juz: Int): Pair<Int, Int> {
+        ensureLoaded()
+        val idx = (0 until TOTAL_AYAHS).first { juzOf[it] >= juz }
+        return surahOf[idx] to ayahOf[idx]
+    }
+
+    /** Sayfanın başladığı (sure, ayet) */
+    fun pageStart(page: Int): Pair<Int, Int> {
+        ensureLoaded()
+        val idx = (0 until TOTAL_AYAHS).firstOrNull { pageOf[it] >= page } ?: 0
+        return surahOf[idx] to ayahOf[idx]
+    }
+
+    fun pagesOfJuz(juz: Int): IntRange {
+        ensureLoaded()
+        val pages = (0 until TOTAL_AYAHS).filter { juzOf[it] == juz }.map { pageOf[it] }
+        return pages.minOrNull()!!..pages.maxOrNull()!!
+    }
+
+    fun juzOfPage(page: Int): Int {
+        ensureLoaded()
+        val idx = (0 until TOTAL_AYAHS).firstOrNull { pageOf[it] == page } ?: return 1
+        return juzOf[idx]
+    }
+
+    /** Mealde ve sure adlarında arama (en fazla 100 sonuç). */
+    fun searchVerses(query: String, limit: Int = 100): List<Ayah> {
+        val q = query.trim().lowercase(Locale("tr"))
+        if (q.length < 3) return emptyList()
+        ensureLoaded()
+        val out = ArrayList<Ayah>()
+        for (i in 0 until TOTAL_AYAHS) {
+            if (meal.getOrElse(i) { "" }.lowercase(Locale("tr")).contains(q)) {
+                out += ayahAt(i)
+                if (out.size >= limit) break
+            }
+        }
+        return out
+    }
+
     fun searchSurahs(query: String): List<Surah> {
         if (query.isBlank()) return surahs
-        val q = query.trim().lowercase()
+        val q = query.trim().lowercase(Locale("tr"))
         return surahs.filter {
-            it.nameTurkish.lowercase().contains(q) ||
-            it.nameArabic.contains(q) ||
-            it.meaningTurkish.lowercase().contains(q) ||
-            it.number.toString() == q
+            it.nameTurkish.lowercase(Locale("tr")).contains(q) ||
+                it.nameArabic.contains(q) ||
+                it.meaningTurkish.lowercase(Locale("tr")).contains(q) ||
+                it.number.toString() == q
         }
     }
 
-    /**
-     * Returns audio streaming URL for a given Surah number (1..114).
-     * Reciters: Mishary Alafasy (default)
-     */
+    val surahReciters = listOf(
+        "alafasy" to "Mishary Rashid Alafasy",
+        "abdulbaset" to "Abdulbasit Abdussamed",
+        "maher" to "Maher el-Muaykılî",
+        "ghamdi" to "Sa'd el-Ğâmidî"
+    )
+
     fun getSurahAudioUrl(surahNumber: Int, reciterKey: String = "alafasy"): String {
-        val formattedNumber = String.format("%03d", surahNumber)
+        val n = String.format(Locale.ROOT, "%03d", surahNumber)
         return when (reciterKey) {
-            "abdulbaset" -> "https://server7.mp3quran.net/basit/$formattedNumber.mp3"
-            "maher" -> "https://server12.mp3quran.net/maher/$formattedNumber.mp3"
-            "ghamdi" -> "https://server8.mp3quran.net/ghamdi/$formattedNumber.mp3"
-            else -> "https://server8.mp3quran.net/afs/$formattedNumber.mp3"
+            "abdulbaset" -> "https://server7.mp3quran.net/basit/$n.mp3"
+            "maher" -> "https://server12.mp3quran.net/maher/$n.mp3"
+            "ghamdi" -> "https://server8.mp3quran.net/ghamdi/$n.mp3"
+            else -> "https://server8.mp3quran.net/afs/$n.mp3"
         }
     }
 
-    /**
-     * Authentic Ayah data with verified Uthmani Arabic text and official Turkish translation.
-     */
-    fun getVersesForSurah(surahNumber: Int): List<Ayah> {
-        return when (surahNumber) {
-            1 -> listOf(
-                Ayah(1, 1, "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "Rahmân ve Rahîm olan Allah'ın adıyla."),
-                Ayah(1, 2, "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", "Hamd (övme ve övülme), âlemlerin Rabbi Allah'a mahsustur."),
-                Ayah(1, 3, "الرَّحْمَٰنِ الرَّحِيمِ", "O, Rahmândır ve Rahîmdir."),
-                Ayah(1, 4, "مَالِكِ يَوْمِ الدِّينِ", "Ceza ve mükâfat gününün (âhiretin) yegâne sahibidir."),
-                Ayah(1, 5, "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ", "(Rabbimiz!) Yalnız sana kulluk eder ve yalnız senden yardım dileriz."),
-                Ayah(1, 6, "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ", "Bizi dosdoğru yola ilet;"),
-                Ayah(1, 7, "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ", "Kendilerine nimet verdiğin kimselerin yoluna; gazaba uğramışların ve sapmışların yoluna değil. (Âmin)")
-            )
-            36 -> listOf( // Yasin (Opening & Core)
-                Ayah(36, 1, "يسٓ", "Yâ Sîn."),
-                Ayah(36, 2, "وَالْقُرْآنِ الْحَكِيمِ", "Hikmet dolu Kur'an'a andolsun ki,"),
-                Ayah(36, 3, "إِنَّكَ لَمِنَ الْمُرْسَلِينَ", "Sen şüphesiz peygamberlerdensin;"),
-                Ayah(36, 4, "عَلَىٰ صِرَاطٍ مُسْتَقِيمٍ", "Dosdoğru bir yol üzerindesin."),
-                Ayah(36, 5, "تَنْزِيلَ الْعَزِيزِ الرَّحِيمِ", "Bu Kur'an, mutlak güç ve merhamet sahibi Allah tarafından indirilmiştir."),
-                Ayah(36, 6, "لِتُنْذِرَ قَوْمًا مَا أُنْذِرَ آبَاؤُهُمْ فَهُمْ غَافِلُونَ", "Ataları uyarılmamış, bu yüzden kendileri de gaflet içinde kalmış bir toplumu uyarman için."),
-                Ayah(36, 58, "سَلَامٌ قَوْلًا مِنْ رَبٍّ رَحِيمٍ", "Çok merhametli olan Rabb'den bir söz olarak onlara 'Selâm' vardır."),
-                Ayah(36, 82, "إِنَّمَا أَمْرُهُ إِذَا أَرَادَ شَيْئًا أَنْ يَقُولَ لَهُ كُنْ فَيَكُونُ", "Bir şeyi dilediği zaman, O'nun buyruğu sadece o şeye 'Ol!' demektir; o da hemen oluverir."),
-                Ayah(36, 83, "فَسُبْحَانَ الَّذِي بِيَدِهِ مَلَكُوتُ كُلِّ شَيْءٍ وَإِلَيْهِ تُرْجَعُونَ", "Her şeyin egemenliği kendi elinde olan Allah bütün eksikliklerden uzaktır. Ve siz sonunda O'na döndürüleceksiniz.")
-            )
-            67 -> listOf( // Mulk
-                Ayah(67, 1, "تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ", "Mutlak egemenlik elinde bulunan Allah yüceler yücesidir; O her şeye hakkıyla kadirdir."),
-                Ayah(67, 2, "الَّذِي خَلَقَ الْمَوْتَ وَالْحَيَاةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا وَهُوَ الْعَزِيزُ الْغَفُورُ", "O, hanginizin daha güzel amel işleyeceğini sınamak için ölümü ve hayatı yaratandır. O, mutlak güç sahibidir, çok bağışlayıcıdır."),
-                Ayah(67, 3, "الَّذِي خَلَقَ سَبْعَ سَمَاوَاتٍ طِبَاقًا مَّا تَرَىٰ فِي خَلْقِ الرَّحْمَٰنِ مِن تَفَاوُتٍ", "O, yedi göğü birbiriyle tam bir uyum içinde yaratandır. Rahmân'ın yaratışında hiçbir düzensizlik göremezsin."),
-                Ayah(67, 4, "فَارْجِعِ الْبَصَرَ هَلْ تَرَىٰ مِن فُطُورٍ", "Gözünü bir kez daha çevir bak; bir çatlak veya kusur görebilir misin?"),
-                Ayah(67, 13, "وَأَسِرُّوا قَوْلَكُمْ أَوِ اجْهَرُوا بِهِ إِنَّهُ عَلِيمٌ بِذَاتِ الصُّدُورِ", "Sözünüzü ister gizleyin, ister açığa vurun; şüphesiz O, kalplerin özünü çok iyi bilendir."),
-                Ayah(67, 14, "أَلَا يَعْلَمُ مَنْ خَلَقَ وَهُوَ اللَّطِيفُ الْخَبِيرُ", "Yaratan hiç bilmez mi? O, bütün incelikleri bilendir, her şeyden haberdardır.")
-            )
-            93 -> listOf( // Duha
-                Ayah(93, 1, "وَالضُّحَىٰ", "Aydınlık kuşluk vaktine andolsun,"),
-                Ayah(93, 2, "وَاللَّيْلِ إِذَا سَجَىٰ", "Karanlığı çöktüğü zaman geceye andolsun ki,"),
-                Ayah(93, 3, "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ", "Rabbin seni ne terk etti ne de sana darıldı."),
-                Ayah(93, 4, "وَلَلْآخِرَةُ خَيْرٌ لَكَ مِنَ الْأُولَىٰ", "Elbette senin için son olan (ahiret), ilk olandan (dünyadan) çok daha hayırlıdır."),
-                Ayah(93, 5, "وَلَسَوْفَ يُعْطِيكَ رَبُّكَ فَتَرْضَىٰ", "Pek yakında Rabbin sana verecek ve sen hoşnut olacaksın."),
-                Ayah(93, 6, "أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ", "O, seni bir yetim iken bulup barındırmadı mı?"),
-                Ayah(93, 7, "وَوَجَدَكَ ضَالًّا فَهَدَىٰ", "Seni yolunu kaybetmiş bulup doğru yola iletmedi mi?"),
-                Ayah(93, 8, "وَوَجَدَكَ عَائِلًا فَأَغْنَىٰ", "Seni ihtiyaç içinde bulup zengin etmedi mi?"),
-                Ayah(93, 9, "فَأَمَّا الْيَتِيمَ فَلَا تَقْهَرْ", "Öyleyse yetimi sakın ezme!"),
-                Ayah(93, 10, "وَأَمَّا السَّائِلَ فَلَا تَنْهَرْ", "Bir şey isteyeni asla azarlama!"),
-                Ayah(93, 11, "وَأَمَّا بِنِعْمَةِ رَبِّكَ فَحَدِّثْ", "Ve Rabbinin nimetini şükranla an!")
-            )
-            94 -> listOf( // Insirah
-                Ayah(94, 1, "أَلَمْ نَشْرَحْ لَكَ صَدْرَكَ", "Biz senin göğsünü yarıp genişletmedik mi?"),
-                Ayah(94, 2, "وَوَضَعْنَا عَنْكَ وِزْرَكَ", "Belini büken ağır yükünü üzerinden indirmedik mi?"),
-                Ayah(94, 3, "الَّذِي أَنْقَضَ ظَهْرَكَ", "O yük ki senin belini bükmüştü."),
-                Ayah(94, 4, "وَرَفَعْنَا لَكَ ذِكْرَكَ", "Senin şanını ve namını yüceltmedik mi?"),
-                Ayah(94, 5, "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", "Şüphesiz her zorlukla beraber bir kolaylık vardır."),
-                Ayah(94, 6, "إِنَّ مَعَ الْعُسْرِ يُسْرًا", "Evet, muhakkak her zorlukla beraber bir kolaylık vardır."),
-                Ayah(94, 7, "فَإِذَا فَرَغْتَ فَانْصَبْ", "Öyleyse bir işi bitirince hemen diğerine koyul,"),
-                Ayah(94, 8, "وَإِلَىٰ رَبِّكَ فَارْغَبْ", "Ve yalnız Rabbine yönel.")
-            )
-            97 -> listOf( // Kadir
-                Ayah(97, 1, "إِنَّا أَنْزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ", "Şüphesiz biz Kur'an'ı Kadir Gecesi'nde indirdik."),
-                Ayah(97, 2, "وَمَا أَدْرَاكَ مَا لَيْلَةُ الْقَدْرِ", "Kadir Gecesi'nin ne olduğunu sen bilir misin?"),
-                Ayah(97, 3, "لَيْلَةُ الْقَدْرِ خَيْرٌ مِنْ أَلْفِ شَهْرٍ", "Kadir Gecesi bin aydan daha hayırlıdır."),
-                Ayah(97, 4, "تَنَزَّلُ الْمَلَائِكَةُ وَالرُّوحُ فِيهَا بِإِذْنِ رَبِّهِمْ مِنْ كُلِّ أَمْرٍ", "Melekler ve Ruh (Cebrail), o gecede Rablerinin izniyle her türlü iş için iner dururlar."),
-                Ayah(97, 5, "سَلَامٌ هِيَ حَتَّىٰ مَطْلَعِ الْفَجْرِ", "O gece, tan yeri ağarana kadar tam bir esenlik ve selâmettir.")
-            )
-            103 -> listOf( // Asr
-                Ayah(103, 1, "وَالْعَصْرِ", "Asra (zamana) andolsun ki,"),
-                Ayah(103, 2, "إِنَّ الْإِنْسَانَ لَفِي خُسْرٍ", "İnsan gerçekten büyük bir ziyan içindedir."),
-                Ayah(103, 3, "إِلَّا الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ وَتَوَاصَوْا بِالْحَقِّ وَتَوَاصَوْا بِالصَّبْرِ", "Ancak iman edip salih ameller işleyenler, birbirlerine hakkı tavsiye edenler ve sabrı tavsiye edenler müstesnadır.")
-            )
-            108 -> listOf( // Kevser
-                Ayah(108, 1, "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ", "Şüphesiz biz sana Kevser'i (tükenmez bol nimeti) verdik."),
-                Ayah(108, 2, "فَصَلِّ لِرَبِّكَ وَانْحَرْ", "Şimdi sen Rabbin için namaz kıl ve kurban kes."),
-                Ayah(108, 3, "إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ", "Asıl soyu kesik olan, sana buğzeden (düşmanlık eden) kimsedir.")
-            )
-            112 -> listOf( // Ihlas
-                Ayah(112, 1, "قُلْ هُوَ اللَّهُ أَحَدٌ", "De ki: O Allah tektir."),
-                Ayah(112, 2, "اللَّهُ الصَّمَدُ", "Allah Samed'dir (her şey O'na muhtaçtır, O hiçbir şeye muhtaç değildir)."),
-                Ayah(112, 3, "لَمْ يَلِدْ وَلَمْ يُولَدْ", "O, doğurmamış ve doğmamıştır."),
-                Ayah(112, 4, "وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ", "Hiçbir şey O'na denk ve benzer değildir.")
-            )
-            113 -> listOf( // Felak
-                Ayah(113, 1, "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ", "De ki: Sabahın Rabbine sığınırım,"),
-                Ayah(113, 2, "مِنْ شَرِّ مَا خَلَقَ", "Yarattığı şeylerin şerrinden,"),
-                Ayah(113, 3, "وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ", "Karanlığı çöktüğü zaman gecenin şerrinden,"),
-                Ayah(113, 4, "وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ", "Düğümlere üfleyen büyücülerin şerrinden,"),
-                Ayah(113, 5, "وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ", "Ve haset ettiği zaman hasetçinin şerrinden.")
-            )
-            114 -> listOf( // Nas
-                Ayah(114, 1, "قُلْ أَعُوذُ بِرَبِّ النَّاسِ", "De ki: İnsanların Rabbine sığınırım,"),
-                Ayah(114, 2, "مَلِكِ النَّاسِ", "İnsanların yegâne hükümdarına,"),
-                Ayah(114, 3, "إِلَٰهِ النَّاسِ", "İnsanların gerçek ilâhına,"),
-                Ayah(114, 4, "مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ", "Sinsi vesvesecinin şerrinden;"),
-                Ayah(114, 5, "الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ", "O ki, insanların kalplerine vesvese fısıldar,"),
-                Ayah(114, 6, "مِنَ الْجِنَّةِ وَالنَّاسِ", "Gerek cinlerden, gerekse insanlardan olan vesvesecilerden.")
-            )
-            95 -> listOf( // Tin
-                Ayah(95, 1, "وَالتِّينِ وَالزَّيْتُونِ", "Tîn'e (incire) ve zeytine andolsun,"),
-                Ayah(95, 2, "وَطُورِ سِينِينَ", "Sînâ Dağı'na,"),
-                Ayah(95, 3, "وَهَٰذَا الْبَلَدِ الْأَمِينِ", "Ve bu güvenli beldeye (Mekke'ye) andolsun ki,"),
-                Ayah(95, 4, "لَقَدْ خَلَقْنَا الْإِنْسَانَ فِي أَحْسَنِ تَقْوِيمٍ", "Biz insanı en güzel biçimde (ahsen-i takvîm üzere) yarattık."),
-                Ayah(95, 5, "ثُمَّ رَدَدْنَاهُ أَسْفَلَ سَافِلِينَ", "Sonra onu aşağıların en aşağısına indirdik;"),
-                Ayah(95, 6, "إِلَّا الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ فَلَهُمْ أَجْرٌ غَيْرُ مَمْنُونٍ", "Ancak iman edip salih ameller işleyenler müstesnadır; onlar için kesintisiz bir mükâfat vardır."),
-                Ayah(95, 7, "فَمَا يُكَذِّبُكَ بَعْدُ بِالدِّينِ", "Artık bundan sonra hesap gününü sana hangi şey yalanlatabilir?"),
-                Ayah(95, 8, "أَلَيْسَ اللَّهُ بِأَحْكَمِ الْحَاكِمِينَ", "Allah, hüküm verenlerin en adili değil midir?")
-            )
-            105 -> listOf( // Fil
-                Ayah(105, 1, "أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَابِ الْفِيلِ", "Görmedin mi Rabbin fil sahiplerine ne yaptı?"),
-                Ayah(105, 2, "أَلَمْ يَجْعَلْ كَيْدَهُمْ فِي تَضْلِيلٍ", "Onların tuzaklarını boşa çıkarmadı mı?"),
-                Ayah(105, 3, "وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ", "Üzerlerine sürü sürü Ebâbîl kuşları gönderdi."),
-                Ayah(105, 4, "تَرْمِيهِمْ بِحِجَارَةٍ مِنْ سِجِّيلٍ", "Onlara pişkin tuğladan taşlar atıyorlardı."),
-                Ayah(105, 5, "فَجَعَلَهُمْ كَعَصْفٍ مَأْكُولٍ", "Nihayet onları yenilmiş ekin yaprağı gibi unufak etti.")
-            )
-            106 -> listOf( // Kureys
-                Ayah(106, 1, "لِإِيلَافِ قُرَيْشٍ", "Kureyş'in güven ve uzlaşması için,"),
-                Ayah(106, 2, "إِيلَافِهِمْ رِحْلَةَ الشِّتَاءِ وَالصَّيْفِ", "Kış ve yaz seferlerinde onların uzlaştırılıp güvene kavuşturulması için;"),
-                Ayah(106, 3, "فَلْيَعْبُدُوا رَبَّ هَٰذَا الْبَيْتِ", "Onlar da bu Beyt'in (Kâbe'nin) Rabbine kulluk etsinler;"),
-                Ayah(106, 4, "الَّذِي أَطْعَمَهُمْ مِنْ جُوعٍ وَآمَنَهُمْ مِنْ خَوْفٍ", "O Rab ki, onları açlıktan kurtarıp doyurdu ve her türlü korkudan emin kıldı.")
-            )
-            107 -> listOf( // Maun
-                Ayah(107, 1, "أَرَأَيْتَ الَّذِي يُكَذِّبُ بِالدِّينِ", "Dini (hesap ve ceza gününü) yalanlayanı gördün mü?"),
-                Ayah(107, 2, "فَذَٰلِكَ الَّذِي يَدُعُّ الْيَتِيمَ", "İşte o, yetimi itip kakar;"),
-                Ayah(107, 3, "وَلَا يَحُضُّ عَلَىٰ طَعَامِ الْمِسْكِينِ", "Yoksula yedirmeyi özendirmez."),
-                Ayah(107, 4, "فَوَيْلٌ لِلْمُصَلِّينَ", "Yazıklar olsun o namaz kılanlara ki;"),
-                Ayah(107, 5, "الَّذِينَ هُمْ عَنْ صَلَاتِهِمْ سَاهُونَ", "Onlar kıldıkları namazdan gafildirler (özünden habersizdirler);"),
-                Ayah(107, 6, "الَّذِينَ هُمْ يُرَاءُونَ", "Onlar gösteriş yaparlar,"),
-                Ayah(107, 7, "وَيَمْنَعُونَ الْمَاعُونَ", "Ve en ufak bir yardıma bile engel olurlar.")
-            )
-            109 -> listOf( // Kafirun
-                Ayah(109, 1, "قُلْ يَا أَيُّهَا الْكَافِرُونَ", "De ki: Ey inkârcılar!"),
-                Ayah(109, 2, "لَا أَعْبُدُ مَا تَعْبُدُونَ", "Ben sizin taptıklarınıza tapmam."),
-                Ayah(109, 3, "وَلَا أَنْتُمْ عَابِدُونَ مَا أَعْبُدُ", "Siz de benim kulluk ettiğime kulluk edecek değilsiniz."),
-                Ayah(109, 4, "وَلَا أَنَا عَابِدٌ مَا عَبَدْتُمْ", "Ben asla sizin taptıklarınıza tapacak değilim;"),
-                Ayah(109, 5, "وَلَا أَنْتُمْ عَابِدُونَ مَا أَعْبُدُ", "Siz de benim kulluk ettiğime kulluk edecek değilsiniz."),
-                Ayah(109, 6, "لَكُمْ دِينُكُمْ وَلِيَ دِينِ", "Sizin dininiz size, benim dinim banadır.")
-            )
-            110 -> listOf( // Nasr
-                Ayah(110, 1, "إِذَا جَاءَ نَصْرُ اللَّهِ وَالْفَتْحُ", "Allah'ın yardımı ve fetih geldiği zaman,"),
-                Ayah(110, 2, "وَرَأَيْتَ النَّاسَ يَدْخُلُونَ فِي دِينِ اللَّهِ أَفْوَاجًا", "Ve insanların dalga dalga Allah'ın dinine girdiklerini gördüğünde;"),
-                Ayah(110, 3, "فَسَبِّحْ بِحَمْدِ رَبِّكَ وَاسْتَغْفِرْهُ ۚ إِنَّهُ كَانَ تَوَّابًا", "Hemen Rabbini hamd ile tesbih et ve O'ndan bağışlanma dile. Şüphesiz O, tövbeleri çokça kabul edendir.")
-            )
-            111 -> listOf( // Tebbet
-                Ayah(111, 1, "تَبَّتْ يَدَا أَبِي لَهَبٍ وَتَبَّ", "Ebû Leheb'in elleri kurusun; nitekim kurudu da!"),
-                Ayah(111, 2, "مَا أَغْنَىٰ عَنْهُ مَالُهُ وَمَا كَسَبَ", "Ona ne malı fayda verdi ne de kazandığı!"),
-                Ayah(111, 3, "سَيَصْلَىٰ نَارًا ذَاتَ لَهَبٍ", "O, alev alev parlayan bir ateşe girecektir;"),
-                Ayah(111, 4, "وَامْرَأَتُهُ حَمَّالَةَ الْحَطَبِ", "Boynunda bükülmüş bir hurma lifi ip olduğu halde, odun taşıyıcı karısı da!"),
-                Ayah(111, 5, "فِي جِيدِهَا حَبْلٌ مِنْ مَسَدٍ", "Boynunda bükülmüş bir urganla ateşe atılacaktır.")
-            )
-            else -> getBasmalaOpening(surahNumber)
+    /** Ayet ayet ses (everyayah.com) */
+    fun getAyahAudioUrl(surah: Int, ayah: Int, reciterKey: String = "alafasy"): String {
+        val folder = when (reciterKey) {
+            "abdulbaset" -> "Abdul_Basit_Murattal_192kbps"
+            "maher" -> "MaherAlMuaiqly128kbps"
+            "ghamdi" -> "Ghamadi_40kbps"
+            "husary" -> "Husary_128kbps"
+            else -> "Alafasy_128kbps"
         }
-    }
-
-    private fun getBasmalaOpening(surahNumber: Int): List<Ayah> {
-        val surah = surahs.find { it.number == surahNumber } ?: return emptyList()
-        // Never generate fake or repetitive verses. Return verified Basmala and authentic audio guidance.
-        return if (surahNumber != 9) { // At-Tawbah does not start with Basmala
-            listOf(
-                Ayah(
-                    surahNumber = surahNumber,
-                    ayahNumber = 1,
-                    textArabic = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                    translationTr = "Rahmân ve Rahîm olan Allah'ın adıyla. (${surah.nameTurkish} Suresi - ${surah.totalVerses} Ayet)"
-                )
-            )
-        } else {
-            listOf(
-                Ayah(
-                    surahNumber = 9,
-                    ayahNumber = 1,
-                    textArabic = "بَرَاءَةٌ مِنَ اللَّهِ وَرَسُولِهِ إِلَى الَّذِينَ عَاهَدْتُمْ مِنَ الْمُشْرِكِينَ",
-                    translationTr = "Allah ve Resûlü'nden, kendileriyle antlaşma yaptığınız müşriklere bir ültimatomdur! (Tevbe Suresi 1. Ayet)"
-                )
-            )
-        }
+        return String.format(Locale.ROOT, "https://everyayah.com/data/%s/%03d%03d.mp3", folder, surah, ayah)
     }
 }

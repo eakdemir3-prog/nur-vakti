@@ -136,46 +136,50 @@ class AutoLocationManager(private val context: Context) {
     }
 
     fun resolveCityFromCoordinates(lat: Double, lng: Double): City {
-        val allCities = CityProvider.getAllCities()
-        var nearestCity = CityProvider.defaultCity
-        var minDistanceKm = Double.MAX_VALUE
+        // En yakın kayıtlı il/ilçe (ilçe listesi dahil)
+        val nearest = CityProvider.findClosestCity(lat, lng)
+        val nearestKm = haversineDistanceKm(lat, lng, nearest.latitude, nearest.longitude)
 
-        for (c in allCities) {
-            val d = haversineDistanceKm(lat, lng, c.latitude, c.longitude)
-            if (d < minDistanceKm) {
-                minDistanceKm = d
-                nearestCity = c
-            }
-        }
-
-        // Try to obtain the specific district / city name via Geocoder
-        var resolvedName = nearestCity.name
-        var countryName = nearestCity.country
+        var name = nearest.name
+        var province = nearest.province
+        var country = nearest.country
         try {
             val geocoder = Geocoder(context, Locale("tr", "TR"))
             @Suppress("DEPRECATION")
             val addresses = geocoder.getFromLocation(lat, lng, 1)
             if (!addresses.isNullOrEmpty()) {
                 val addr = addresses[0]
-                val adminArea = addr.adminArea ?: addr.subAdminArea ?: addr.locality
-                if (!adminArea.isNullOrBlank()) {
-                    resolvedName = adminArea
+                val district = addr.subAdminArea ?: addr.locality
+                val admin = addr.adminArea
+                if (!district.isNullOrBlank() && !admin.isNullOrBlank() && district != admin) {
+                    name = district
+                    province = admin
+                } else if (!admin.isNullOrBlank()) {
+                    name = admin
+                    province = ""
                 }
-                if (!addr.countryName.isNullOrBlank()) {
-                    countryName = addr.countryName
-                }
+                if (!addr.countryName.isNullOrBlank()) country = addr.countryName
             }
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+            // Geocoder yoksa en yakın kayıtlı yerin adı kullanılır
+            if (nearestKm > 60) { name = "Konumum"; province = "" }
+        }
 
         return City(
-            id = "auto_${lat.toInt()}_${lng.toInt()}",
-            name = resolvedName,
-            country = countryName,
+            id = AUTO_CITY_ID,
+            name = name,
+            country = country,
             latitude = lat,
             longitude = lng,
-            timezoneOffsetHours = nearestCity.timezoneOffsetHours,
-            isFavorite = true
+            isFavorite = true,
+            // Kullanıcı fiilen orada olduğu için cihaz saat dilimi doğrudur
+            timeZoneId = java.util.TimeZone.getDefault().id,
+            province = province
         )
+    }
+
+    companion object {
+        const val AUTO_CITY_ID = "auto_gps"
     }
 
     private fun haversineDistanceKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {

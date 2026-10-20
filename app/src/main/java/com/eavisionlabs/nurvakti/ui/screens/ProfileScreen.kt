@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.eavisionlabs.nurvakti.ui.AppScreen
 import com.eavisionlabs.nurvakti.ui.UiState
+import com.eavisionlabs.nurvakti.i18n.t
 import com.eavisionlabs.nurvakti.ui.theme.*
 
 @Composable
@@ -37,6 +38,7 @@ fun ProfileScreen(
     onToggleTheme: () -> Unit,
     onOpenPremium: () -> Unit = {},
     onAutoDetectLocation: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -87,7 +89,7 @@ fun ProfileScreen(
                             )
                         )
                         Text(
-                            text = "Konum: ${uiState.selectedCity.name}, ${uiState.selectedCity.country}",
+                            text = "Konum: ${uiState.selectedCity.displayName}, ${uiState.selectedCity.country}",
                             style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
@@ -218,16 +220,16 @@ fun ProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 StatCard(
-                    title = "Namaz",
+                    title = t("Namaz"),
                     value = "${uiState.completedPrayersToday.size} / 5",
-                    subtitle = "Bugün Kılınan",
+                    subtitle = t("Bugün kılınan"),
                     icon = Icons.Default.AccessTime,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    title = "Zikir",
+                    title = t("Zikir"),
                     value = "${uiState.todayDhikrCompletedTotal}",
-                    subtitle = "Bugünkü Toplam",
+                    subtitle = t("Bugünkü toplam"),
                     icon = Icons.Default.Fingerprint,
                     modifier = Modifier.weight(1f)
                 )
@@ -240,16 +242,16 @@ fun ProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 StatCard(
-                    title = "Hatim",
-                    value = "${uiState.completedJuzs.size} / 30",
-                    subtitle = "Okunan Cüz",
+                    title = t("Kur'an"),
+                    value = "${uiState.pagesReadToday} / ${uiState.dailyPageGoal}",
+                    subtitle = t("Bugün okunan sayfa"),
                     icon = Icons.Default.MenuBook,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    title = "Favoriler",
-                    value = "${uiState.favoriteSurahs.size + uiState.favoriteDuas.size}",
-                    subtitle = "Sure & Dua",
+                    title = t("Seri"),
+                    value = "${uiState.prayerStreak}",
+                    subtitle = t("Gün kesintisiz namaz"),
                     icon = Icons.Default.Star,
                     modifier = Modifier.weight(1f)
                 )
@@ -271,39 +273,53 @@ fun ProfileScreen(
 
             // Auto GPS Location
             SettingsRow(
-                title = "Konumumu Otomatik Bul (GPS)",
-                subtitle = if (uiState.isLocating) "GPS konumu aranıyor..." else "Mevcut: ${uiState.selectedCity.name}",
+                title = t("Ezan, Bildirim ve Uygulama Ayarları"),
+                subtitle = t("Vakit bildirimleri, ezan sesi, tema, dil, yedekleme"),
+                icon = Icons.Default.Settings,
+                onClick = onOpenSettings
+            )
+
+            SettingsRow(
+                title = t("Namaz Takibi ve İstatistikler"),
+                subtitle = t("Haftalık grafik, seri ve okuma takibi"),
+                icon = Icons.Default.TaskAlt,
+                onClick = { onNavigate(AppScreen.PRAYER_TRACKER) }
+            )
+
+            SettingsRow(
+                title = t("Konumumu Otomatik Bul (GPS)"),
+                subtitle = if (uiState.isLocating) "GPS konumu aranıyor..." else "Mevcut: ${uiState.selectedCity.displayName}",
                 icon = Icons.Default.MyLocation,
                 onClick = onAutoDetectLocation
             )
 
             // City Selection
             SettingsRow(
-                title = "Şehir ve Konum Listesi",
-                subtitle = "${uiState.selectedCity.name} (${uiState.selectedCity.country})",
+                title = t("Şehir ve Konum Listesi"),
+                subtitle = "${uiState.selectedCity.displayName} (${uiState.selectedCity.country})",
                 icon = Icons.Default.LocationOn,
                 onClick = onOpenCityPicker
             )
 
             // Theme Toggle
             SettingsRow(
-                title = "Görünüm Teması",
-                subtitle = if (uiState.isDarkMode) "Gece Zümrüdü (Karanlık)" else "Fildişi Taşı (Aydınlık)",
-                icon = if (uiState.isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                title = t("Görünüm Teması"),
+                subtitle = when (uiState.themeMode) { "light" -> t("Fildişi (Açık)"); "system" -> t("Sistem"); "kiswa" -> t("Kâbe Örtüsü"); else -> t("Gece Zümrüdü") },
+                icon = if (uiState.themeMode == "light") Icons.Default.LightMode else Icons.Default.DarkMode,
                 onClick = onToggleTheme
             )
 
             // Kaza Namazı Tracker shortcut
             SettingsRow(
-                title = "Kaza Namazı Defteri",
-                subtitle = "Geçmiş namaz borçlarınızı hesaplayın ve kaydedin",
+                title = t("Kaza Namazı Defteri"),
+                subtitle = t("Geçmiş namaz borçlarınızı hesaplayın ve kaydedin"),
                 icon = Icons.Default.FormatListNumbered,
                 onClick = { onNavigate(AppScreen.KAZA_NAMAZ) }
             )
 
             // Quran Settings shortcut
             SettingsRow(
-                title = "Kur'an Okuma Ayarları",
+                title = t("Kur'an Okuma Ayarları"),
                 subtitle = "Yazı boyutları: Arapça ${uiState.arabicFontSize}sp, Meal ${uiState.mealFontSize}sp",
                 icon = Icons.Default.FormatSize,
                 onClick = { onNavigate(AppScreen.QURAN) }
@@ -311,24 +327,24 @@ fun ProfileScreen(
 
             // Verified Sources & Licenses
             SettingsRow(
-                title = "Dini Kaynaklar ve Lisanslar",
-                subtitle = "Diyanet İşleri Başkanlığı, Tanzil, Aladhan ve EveryAyah",
+                title = t("Dini Kaynaklar ve Lisanslar"),
+                subtitle = t("Diyanet İşleri Başkanlığı, Tanzil, Kur'an Ansiklopedisi, EveryAyah"),
                 icon = Icons.Default.Verified,
                 onClick = { showSourcesDialog = true }
             )
 
             // Privacy & Data
             SettingsRow(
-                title = "Gizlilik ve Güvenlik",
-                subtitle = "Verileriniz yalnızca telefonunuzda saklanır",
+                title = t("Gizlilik ve Güvenlik"),
+                subtitle = t("Verileriniz yalnızca telefonunuzda saklanır"),
                 icon = Icons.Default.Security,
                 onClick = { showPrivacyDialog = true }
             )
 
             // Version info
             SettingsRow(
-                title = "NurVakti Hakkında",
-                subtitle = "Sürüm 1.0.0 (Google Play Yayınına Hazır)",
+                title = t("NurVakti Hakkında"),
+                subtitle = "NurVakti ${com.eavisionlabs.nurvakti.BuildConfig.VERSION_NAME} • EA Vision Labs",
                 icon = Icons.Default.Info,
                 onClick = {
                     Toast.makeText(context, "NurVakti: Premium Kur'an-ı Kerim ve İslami Yaşam", Toast.LENGTH_SHORT).show()
@@ -342,7 +358,7 @@ fun ProfileScreen(
             onDismissRequest = { showSourcesDialog = false },
             title = {
                 Text(
-                    "Doğrulanmış Dini Kaynaklar",
+                    t("Dini Kaynaklar"),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -350,11 +366,12 @@ fun ProfileScreen(
             text = {
                 Column {
                     Text(
-                        text = "1. Kur'an-ı Kerim Metni: Tanzil.net projesinin Uthmani Mushaf standartlarına uygun, hareke doğrulaması yapılmış resmi metni.\n\n" +
-                               "2. Türkçe Mealler: Diyanet İşleri Başkanlığı Kur'an Meali.\n\n" +
-                               "3. Namaz Vakitleri & Kıble: Astronomik güneş declination formülü, Diyanet İşleri Başkanlığı ve Muslim World League hesaplama parametreleri (Aladhan API uyumlu).\n\n" +
-                               "4. Sesli Tilavetler: EveryAyah ve Mp3Quran lisanslı yüksek kaliteli kâri ses kayıtları.\n\n" +
-                               "5. Dualar & Esma: Kütüb-i Sitte hadis kaynakları ve Kur'an-ı Kerim ayetleri.",
+                        text = t("1. Kur'an-ı Kerim metni: Kur'an Ansiklopedisi (quranenc.com) Osmanlı hattı; sayfa ve cüz düzeni Medine Mushafı.") + "\n\n" +
+                               t("2. Türkçe meal: Diyanet İşleri Başkanlığı (tanzil.net). İngilizce: Saheeh International.") + "\n\n" +
+                               t("3. Namaz vakitleri: Diyanet İşleri Başkanlığı yöntemi (İmsak 18°, Yatsı 17°, asr-ı evvel ve temkinler) cihazda hesaplanır.") + "\n\n" +
+                               t("4. Sesli tilavet: mp3quran.net (sure) ve everyayah.com (ayet ayet).") + "\n\n" +
+                               t("5. Hadisler: Buhârî, Müslim, Tirmizî, Ebû Dâvûd ve diğer kaynaklar; her hadisin kaynağı yanında belirtilmiştir.") + "\n\n" +
+                               t("6. Kur'an yazı tipi: Amiri Quran (SIL Open Font License)."),
                         style = MaterialTheme.typography.bodySmall,
                         lineHeight = 18.sp,
                         color = MaterialTheme.colorScheme.onSurface
@@ -370,7 +387,7 @@ fun ProfileScreen(
     }
 
     if (showPrivacyDialog) {
-        val policyUrl = "https://eakdemir3-prog.github.io/fitnex-legal/nurvakti/gizlilik.html"
+        val policyUrl = com.eavisionlabs.nurvakti.MainActivity.PRIVACY_URL
         AlertDialog(
             onDismissRequest = { showPrivacyDialog = false },
             title = {

@@ -24,85 +24,112 @@ import androidx.compose.ui.unit.sp
 import com.eavisionlabs.nurvakti.ui.AppScreen
 import com.eavisionlabs.nurvakti.ui.UiState
 import com.eavisionlabs.nurvakti.ui.theme.*
+import com.eavisionlabs.nurvakti.i18n.t
 
 @Composable
 fun ExploreScreen(
     uiState: UiState,
     onNavigate: (AppScreen) -> Unit,
     onOpenPremium: () -> Unit = {},
+    onFindMosques: () -> Unit = {},
+    onShare: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
     val allTools = listOf(
         ExploreToolItem(
+            id = "tracker",
+            title = t("Namaz Takibi ve İstatistikler"),
+            subtitle = t("Kıldığınız vakitleri işaretleyin, haftalık grafik ve seri takibi"),
+            icon = Icons.Default.TaskAlt,
+            accentColor = Color(0xFF26C6DA),
+            screen = AppScreen.PRAYER_TRACKER
+        ),
+        ExploreToolItem(
+            id = "mosque",
+            title = t("Yakındaki Camiler"),
+            subtitle = t("Haritada size en yakın camileri gösterir"),
+            icon = Icons.Default.Mosque,
+            accentColor = Color(0xFF8D6E63),
+            screen = AppScreen.EXPLORE
+        ),
+        ExploreToolItem(
+            id = "settings",
+            title = t("Ezan, Bildirim ve Uygulama Ayarları"),
+            subtitle = t("Vakit bildirimleri, ezan sesi, tema, dil ve yedekleme"),
+            icon = Icons.Default.Settings,
+            accentColor = Color(0xFF90A4AE),
+            screen = AppScreen.SETTINGS
+        ),
+        ExploreToolItem(
             id = "qibla",
-            title = "Kıble Bulucu (Pusula)",
-            subtitle = "Gerçek manyetik sensör ile Kâbe yönü ve derece göstergesi",
+            title = t("Kıble Bulucu (Pusula)"),
+            subtitle = t("Gerçek manyetik sensör ile Kâbe yönü ve derece göstergesi"),
             icon = Icons.Default.Explore,
             accentColor = GoldChampagne,
             screen = AppScreen.QIBLA
         ),
         ExploreToolItem(
             id = "tasbih",
-            title = "Dijital Tesbih & Zikirmatik",
-            subtitle = "Dokunsal sayaç, hazır dualı zikirler, hedef takibi ve titreşim",
+            title = t("Dijital Tesbih & Zikirmatik"),
+            subtitle = t("Hazır ve kendi zikirleriniz, hedef, titreşim ve günlük geçmiş"),
             icon = Icons.Default.Fingerprint,
             accentColor = Color(0xFF66BB6A),
             screen = AppScreen.TASBIH
         ),
         ExploreToolItem(
             id = "kaza",
-            title = "Kaza Namazı Defteri",
-            subtitle = "Tüm geçmiş namaz borçlarınızı hesaplayın ve tek tıkla kaydedin",
+            title = t("Kaza Namazı Defteri"),
+            subtitle = t("Tüm geçmiş namaz borçlarınızı hesaplayın ve tek tıkla kaydedin"),
             icon = Icons.Default.FormatListNumbered,
             accentColor = Color(0xFFFF7043),
             screen = AppScreen.KAZA_NAMAZ
         ),
         ExploreToolItem(
             id = "duas",
-            title = "Mübarek Dualar Kütüphanesi",
-            subtitle = "Sabah, akşam, şifa ve Kur'an'da geçen 10 kategoride dualar",
+            title = t("Mübarek Dualar Kütüphanesi"),
+            subtitle = t("Sabah, akşam, şifa ve Kur'an'da geçen dualar"),
             icon = Icons.Default.AutoAwesome,
             accentColor = Color(0xFFFFA726),
             screen = AppScreen.DUAS
         ),
         ExploreToolItem(
             id = "asma",
-            title = "Esmaü'l-Hüsna (99 İsim)",
-            subtitle = "Allah'ın yüce isimleri, tefsirleri ve manevi faziletleri",
+            title = t("Esmaü'l-Hüsna (99 İsim)"),
+            subtitle = t("Allah'ın yüce isimleri, tefsirleri ve manevi faziletleri"),
             icon = Icons.Default.Star,
             accentColor = Color(0xFFAB47BC),
             screen = AppScreen.ASMAUL_HUSNA
         ),
         ExploreToolItem(
             id = "ramazan",
-            title = "Ramazan & Hatim Takibi",
-            subtitle = "İftar/İmsak geri sayımı ve 30 cüz etkileşimli hatim takibi",
+            title = t("Ramazan & Hatim Takibi"),
+            subtitle = t("İftar/sahur geri sayımı, imsakiye ve 30 cüz hatim takibi"),
             icon = Icons.Default.NightlightRound,
             accentColor = GoldChampagne,
             screen = AppScreen.RAMAZAN_HATIM
         ),
         ExploreToolItem(
             id = "zakat",
-            title = "Zekât ve Fitre Hesaplayıcı",
-            subtitle = "80.18g altın nisap eşiği ve %2.5 zekât oranı hesaplama",
+            title = t("Zekât ve Fitre Hesaplayıcı"),
+            subtitle = t("80.18g altın nisap eşiği ve %2.5 zekât oranı hesaplama"),
             icon = Icons.Default.Calculate,
             accentColor = Color(0xFF26A69A),
             screen = AppScreen.ZAKAT_CALCULATOR
         ),
         ExploreToolItem(
             id = "quran",
-            title = "Kur'an-ı Kerim & Sesli Tilavet",
-            subtitle = "114 Sure, Uthmani hattı, Diyanet meali ve kâri kayıtları",
+            title = t("Kur'an-ı Kerim & Sesli Tilavet"),
+            subtitle = t("114 sure, 6236 ayet, Diyanet meali, ayet ayet dinleme"),
             icon = Icons.Default.MenuBook,
             accentColor = Color(0xFF42A5F5),
             screen = AppScreen.QURAN
         ),
         ExploreToolItem(
             id = "calendar",
-            title = "Aylık Vakitler & İmsakiye",
-            subtitle = "30 günlük tam namaz takvimi ve Hicri tarihler",
+            title = t("Aylık Vakitler & İmsakiye"),
+            subtitle = t("30 günlük tam namaz takvimi ve Hicri tarihler"),
             icon = Icons.Default.CalendarMonth,
             accentColor = Color(0xFF78909C),
             screen = AppScreen.PRAYER_TIMES
@@ -125,7 +152,7 @@ fun ExploreScreen(
     ) {
         item {
             Text(
-                text = "İslami İbadet & Yaşam Araçları",
+                text = t("İslami İbadet & Yaşam Araçları"),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -134,7 +161,7 @@ fun ExploreScreen(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "Günlük dini vazifelerinizi kolaylaştıran özellikler",
+                text = t("Günlük dini vazifelerinizi kolaylaştıran özellikler"),
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
@@ -180,7 +207,7 @@ fun ExploreScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "NurVakti Pro Ayrıcalıkları",
+                                text = t("NurVakti Pro Ayrıcalıkları"),
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = GoldChampagne
@@ -246,7 +273,7 @@ fun ExploreScreen(
                     .fillMaxWidth()
                     .padding(vertical = 5.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .clickable { onNavigate(tool.screen) }
+                    .clickable { if (tool.id == "mosque") onFindMosques() else onNavigate(tool.screen) }
                     .testTag("explore_tool_${tool.id}"),
                 shape = RoundedCornerShape(18.dp),
                 color = MaterialTheme.colorScheme.surface,
@@ -310,7 +337,7 @@ fun ExploreScreen(
         item {
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Yaklaşan Mübarek Gün ve Geceler",
+                text = t("Yaklaşan Mübarek Gün ve Geceler"),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -320,7 +347,7 @@ fun ExploreScreen(
             Spacer(modifier = Modifier.height(10.dp))
         }
 
-        items(uiState.religiousDays.take(4), key = { it.id }) { day ->
+        items(uiState.religiousDays, key = { it.id }) { day ->
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -338,7 +365,7 @@ fun ExploreScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                         Text(
-                            text = day.title,
+                            text = t(day.title),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface

@@ -20,5 +20,7 @@ data class Ayah(
     val footnote: String? = null,
     val audioUrl: String? = null,
     var isFavorite: Boolean = false,
-    var isBookmarked: Boolean = false
+    var isBookmarked: Boolean = false,
+    val page: Int = 0,
+    val juz: Int = 0
 )

@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.eavisionlabs.nurvakti.model.MonthlyDaySchedule
 import com.eavisionlabs.nurvakti.model.PrayerType
+import com.eavisionlabs.nurvakti.model.NotificationPreference
+import com.eavisionlabs.nurvakti.i18n.t
 import com.eavisionlabs.nurvakti.ui.UiState
 import com.eavisionlabs.nurvakti.ui.theme.*
 import java.util.Locale
@@ -31,10 +33,13 @@ fun PrayerTimesScreen(
     uiState: UiState,
     onOpenCityPicker: () -> Unit,
     onOpenMonthlySchedule: (Boolean) -> Unit,
+    onOpenSettings: () -> Unit = {},
+    onSetNotificationPref: (PrayerType, NotificationPreference) -> Unit = { _, _ -> },
+    onShare: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val schedule = uiState.prayerSchedule
-    var showNotificationSettingsDialog by remember { mutableStateOf(false) }
+    var notifPrayer by remember { mutableStateOf<PrayerType?>(null) }
 
     LazyColumn(
         modifier = modifier
@@ -87,7 +92,7 @@ fun PrayerTimesScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = uiState.selectedCity.name,
+                            text = uiState.selectedCity.displayName,
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -225,7 +230,7 @@ fun PrayerTimesScreen(
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = prayer.type.titleTr,
+                                    text = t(prayer.type.titleTr),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = if (isNext || isCurrent) FontWeight.Bold else FontWeight.Medium,
                                         color = if (isNext) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -235,7 +240,7 @@ fun PrayerTimesScreen(
                                 if (!prayer.type.isFardh) {
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "(Doğuş)",
+                                        text = t("(Doğuş)"),
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontSize = 11.sp
@@ -266,14 +271,21 @@ fun PrayerTimesScreen(
 
                         Spacer(modifier = Modifier.width(8.dp))
 
+                        val pref = uiState.notificationPrefs[prayer.type] ?: NotificationPreference.DISABLED
                         IconButton(
-                            onClick = { showNotificationSettingsDialog = true },
+                            onClick = { notifPrayer = prayer.type },
                             modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.NotificationsActive,
-                                contentDescription = "Ezan Bildirimi",
-                                tint = if (isNext) GoldChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
+                                imageVector = when (pref) {
+                                    NotificationPreference.DISABLED -> Icons.Default.NotificationsOff
+                                    NotificationPreference.AZAN -> Icons.Default.Campaign
+                                    NotificationPreference.SILENT -> Icons.Default.NotificationsNone
+                                    NotificationPreference.VIBRATE_ONLY -> Icons.Default.Vibration
+                                    else -> Icons.Default.NotificationsActive
+                                },
+                                contentDescription = t("Bildirim ayarı"),
+                                tint = if (pref == NotificationPreference.DISABLED) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else GoldChampagne,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -305,11 +317,25 @@ fun PrayerTimesScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Aylık Takvim (İmsakiye)", fontWeight = FontWeight.Bold)
+                    Text(t("Aylık Takvim"), fontWeight = FontWeight.Bold, maxLines = 1)
                 }
 
                 OutlinedButton(
-                    onClick = { showNotificationSettingsDialog = true },
+                    onClick = {
+                        val s0 = uiState.prayerSchedule
+                        if (s0 != null) onShare(
+                            "${s0.cityName} • ${s0.gregorianDateFormatted}\n${s0.hijriDateFormatted}\n\n" +
+                                s0.prayerTimes.joinToString("\n") { "${t(it.type.titleTr)}: ${it.timeFormatted}" } + "\n\n— NurVakti"
+                        )
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = GoldChampagne)
+                ) {
+                    Icon(imageVector = Icons.Default.Share, contentDescription = t("Paylaş"), modifier = Modifier.size(18.dp))
+                }
+
+                OutlinedButton(
+                    onClick = onOpenSettings,
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = GoldChampagne
@@ -326,7 +352,7 @@ fun PrayerTimesScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Hesaplama Yöntemi: Diyanet İşleri Başkanlığı ve Müslüman Âlemi Birliği (MWL) astronomik parametreleri esas alınmıştır. Konumunuza göre Güneş açısı hesaplanır.",
+                text = t("Hesaplama: Diyanet İşleri Başkanlığı yöntemi (İmsak 18°, Yatsı 17°, asr-ı evvel, temkinler dahil). Ayarlar'dan dakika düzeltmesi yapabilirsiniz."),
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
@@ -353,7 +379,7 @@ fun PrayerTimesScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Aylık Vakitler (${uiState.selectedCity.name})",
+                        text = "Aylık Vakitler (${uiState.selectedCity.displayName})",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -409,51 +435,25 @@ fun PrayerTimesScreen(
         }
     }
 
-    // Adhan & Notification Settings Dialog
-    if (showNotificationSettingsDialog) {
+    notifPrayer?.let { type ->
         AlertDialog(
-            onDismissRequest = { showNotificationSettingsDialog = false },
-            title = { Text("Ezan & Bildirim Ayarları", color = MaterialTheme.colorScheme.onSurface) },
+            onDismissRequest = { notifPrayer = null },
+            title = { Text(String.format(t("%s bildirimi"), t(type.titleTr))) },
             text = {
                 Column {
-                    Text(
-                        text = "Vakit girdiğinde bildirim ve ezan tercihlerinizi belirleyin:",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    listOf(
-                        "Ezan Sesi Çal (Mekke Ezanı)" to true,
-                        "15 Dakika Önce Hatırlat" to true,
-                        "Vakit Girişinde Titreşim" to true,
-                        "Sessiz Bildirim Göster" to false
-                    ).forEach { (prefTitle, defaultChecked) ->
-                        var isChecked by remember { mutableStateOf(defaultChecked) }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(prefTitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                            Switch(checked = isChecked, onCheckedChange = { isChecked = it })
+                    NotificationPreference.entries.forEach { p ->
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = uiState.notificationPrefs[type] == p,
+                                onClick = { onSetNotificationPref(type, p); notifPrayer = null }
+                            )
+                            Text(notificationPrefLabel(p), color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
             },
-            confirmButton = {
-                Button(
-                    onClick = { showNotificationSettingsDialog = false },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = GoldChampagne,
-                        contentColor = EmeraldDarkest
-                    )
-                ) {
-                    Text("Kaydet")
-                }
-            }
+            confirmButton = { TextButton(onClick = { notifPrayer = null; onOpenSettings() }) { Text(t("Tüm ayarlar")) } },
+            dismissButton = { TextButton(onClick = { notifPrayer = null }) { Text(t("Kapat")) } }
         )
     }
 }

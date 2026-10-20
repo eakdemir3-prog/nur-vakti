@@ -30,7 +30,14 @@ data class PlayerState(
     val durationMs: Int = 0,
     val playbackSpeed: Float = 1.0f,
     val sleepTimerMinutesRemaining: Int? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    /** Ayet ayet çalma modu (okuyucuda takip / hıfz tekrarı) */
+    val ayahMode: Boolean = false,
+    val currentAyahSurah: Int = 0,
+    val currentAyah: Int = 0,
+    /** Her ayetin kaç kez tekrar edileceği (hıfz) */
+    val repeatEach: Int = 1,
+    val currentRepeat: Int = 1
 )
 
 class AudioPlayerManager(private val context: Context) {
@@ -69,8 +76,10 @@ class AudioPlayerManager(private val context: Context) {
         }
 
         stop()
+        ayahQueue = emptyList()
 
         _playerState.value = _playerState.value.copy(
+            ayahMode = false,
             status = PlaybackStatus.BUFFERING,
             currentSurahNumber = surah.number,
             currentSurahNameTr = surah.nameTurkish,
@@ -167,7 +176,113 @@ class AudioPlayerManager(private val context: Context) {
         _playerState.value = _playerState.value.copy(playbackSpeed = speed)
     }
 
+    // ------------------------------------------------------------------
+    // Ayet ayet çalma
+    // ------------------------------------------------------------------
+    private var ayahQueue: List<Pair<Int, Int>> = emptyList()
+    private var ayahIndex = 0
+
+    /**
+     * [queue] içindeki ayetleri sırayla çalar; her ayet [repeatEach] kez tekrarlanır.
+     * [reciterKey] everyayah klasör anahtarı.
+     */
+    fun playAyahs(queue: List<Pair<Int, Int>>, startIndex: Int, repeatEach: Int, reciterKey: String) {
+        if (queue.isEmpty()) return
+        stop()
+        ayahQueue = queue
+        ayahIndex = startIndex.coerceIn(0, queue.lastIndex)
+        val first = queue[ayahIndex]
+        val surah = QuranRepository.surahs.getOrNull(first.first - 1)
+        _playerState.value = _playerState.value.copy(
+            ayahMode = true,
+            repeatEach = repeatEach.coerceAtLeast(1),
+            currentRepeat = 1,
+            currentReciterKey = reciterKey,
+            currentSurahNumber = first.first,
+            currentSurahNameTr = surah?.nameTurkish ?: "",
+            currentSurahNameAr = surah?.nameArabic ?: "",
+            errorMessage = null
+        )
+        playCurrentAyah()
+    }
+
+    fun setRepeatEach(times: Int) {
+        _playerState.value = _playerState.value.copy(repeatEach = times.coerceAtLeast(1))
+    }
+
+    private fun playCurrentAyah() {
+        val (s, a) = ayahQueue.getOrNull(ayahIndex) ?: run { stop(); return }
+        releaseOnly()
+        val surah = QuranRepository.surahs.getOrNull(s - 1)
+        _playerState.value = _playerState.value.copy(
+            status = PlaybackStatus.BUFFERING,
+            currentAyahSurah = s,
+            currentAyah = a,
+            currentSurahNumber = s,
+            currentSurahNameTr = surah?.nameTurkish ?: _playerState.value.currentSurahNameTr,
+            currentSurahNameAr = surah?.nameArabic ?: _playerState.value.currentSurahNameAr,
+            progressMs = 0,
+            durationMs = 0
+        )
+        try {
+            mediaPlayer = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setDataSource(QuranRepository.getAyahAudioUrl(s, a, _playerState.value.currentReciterKey))
+                setOnPreparedListener { player ->
+                    setSpeed(_playerState.value.playbackSpeed)
+                    player.start()
+                    _playerState.value = _playerState.value.copy(status = PlaybackStatus.PLAYING, durationMs = player.duration)
+                    handler.post(progressRunnable)
+                }
+                setOnCompletionListener { onAyahCompleted() }
+                setOnErrorListener { _, what, extra ->
+                    _playerState.value = _playerState.value.copy(
+                        status = PlaybackStatus.ERROR,
+                        errorMessage = "Ayet sesi yüklenemedi ($what, $extra). İnternet bağlantınızı kontrol edin."
+                    )
+                    true
+                }
+                prepareAsync()
+            }
+        } catch (e: Exception) {
+            _playerState.value = _playerState.value.copy(status = PlaybackStatus.ERROR, errorMessage = e.localizedMessage)
+        }
+    }
+
+    private fun onAyahCompleted() {
+        val st = _playerState.value
+        if (st.currentRepeat < st.repeatEach) {
+            _playerState.value = st.copy(currentRepeat = st.currentRepeat + 1)
+            playCurrentAyah()
+            return
+        }
+        if (ayahIndex < ayahQueue.lastIndex) {
+            ayahIndex++
+            _playerState.value = st.copy(currentRepeat = 1)
+            playCurrentAyah()
+        } else {
+            stop()
+        }
+    }
+
+    private fun releaseOnly() {
+        handler.removeCallbacks(progressRunnable)
+        mediaPlayer?.let {
+            try { if (it.isPlaying) it.stop(); it.reset(); it.release() } catch (_: Exception) {}
+        }
+        mediaPlayer = null
+    }
+
     fun playNext() {
+        if (_playerState.value.ayahMode) {
+            if (ayahIndex < ayahQueue.lastIndex) { ayahIndex++; _playerState.value = _playerState.value.copy(currentRepeat = 1); playCurrentAyah() }
+            return
+        }
         val next = _playerState.value.currentSurahNumber + 1
         if (next <= 114) {
             playSurah(next)
@@ -175,6 +290,10 @@ class AudioPlayerManager(private val context: Context) {
     }
 
     fun playPrevious() {
+        if (_playerState.value.ayahMode) {
+            if (ayahIndex > 0) { ayahIndex--; _playerState.value = _playerState.value.copy(currentRepeat = 1); playCurrentAyah() }
+            return
+        }
         val prev = _playerState.value.currentSurahNumber - 1
         if (prev >= 1) {
             playSurah(prev)
@@ -211,6 +330,6 @@ class AudioPlayerManager(private val context: Context) {
             } catch (_: Exception) {}
         }
         mediaPlayer = null
-        _playerState.value = _playerState.value.copy(status = PlaybackStatus.IDLE)
+        _playerState.value = _playerState.value.copy(status = PlaybackStatus.IDLE, currentAyah = 0, currentAyahSurah = 0)
     }
 }

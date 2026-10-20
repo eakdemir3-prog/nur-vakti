@@ -33,6 +33,7 @@ import com.eavisionlabs.nurvakti.ui.AppScreen
 import com.eavisionlabs.nurvakti.ui.UiState
 import com.eavisionlabs.nurvakti.ui.theme.*
 import java.util.Locale
+import com.eavisionlabs.nurvakti.i18n.t
 
 @Composable
 fun HomeScreen(
@@ -42,9 +43,16 @@ fun HomeScreen(
     onOpenCityPicker: () -> Unit,
     onAutoDetectLocation: () -> Unit = {},
     onOpenPremium: () -> Unit = {},
+    onOpenAyah: (Int, Int) -> Unit = { _, _ -> },
+    onContinueReading: () -> Unit = {},
+    onShare: (String) -> Unit = {},
+    onFindMosques: () -> Unit = {},
+    onEnableNotifications: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val schedule = uiState.prayerSchedule
+    val todayEvent = uiState.religiousDays.firstOrNull { it.daysRemaining == 0 }
+    val isFriday = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
 
     LazyColumn(
         modifier = modifier
@@ -191,7 +199,7 @@ fun HomeScreen(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = uiState.selectedCity.name,
+                                        text = uiState.selectedCity.displayName,
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             color = MaterialTheme.colorScheme.onSurface,
                                             fontWeight = FontWeight.Bold
@@ -342,6 +350,63 @@ fun HomeScreen(
             }
         }
 
+        // 2b. Bildirim izni uyarısı
+        if (!uiState.notificationsAllowed) {
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)).clickable { onEnableNotifications() },
+                    shape = RoundedCornerShape(16.dp),
+                    color = GoldChampagne.copy(alpha = 0.14f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldChampagne.copy(alpha = 0.5f))
+                ) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = GoldChampagne)
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(t("Vakit bildirimlerini açın"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            Text(t("Ezan ve hatırlatmalar için bildirim iznine ihtiyaç var."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2c. Cuma / dini gün tebriği
+        if (isFriday || todayEvent != null) {
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                val title = todayEvent?.let { t(it.title) } ?: t("Hayırlı Cumalar")
+                val greetings = com.eavisionlabs.nurvakti.data.DailyContent.greetings(todayEvent?.title)
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldChampagne.copy(alpha = 0.4f))
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.NightsStay, contentDescription = null, tint = GoldChampagne)
+                            Spacer(Modifier.width(8.dp))
+                            Text(title, fontWeight = FontWeight.Bold, color = GoldLight, style = MaterialTheme.typography.titleMedium)
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Text(greetings.first(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                        Spacer(Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            greetings.forEachIndexed { i, g ->
+                                AssistChip(
+                                    onClick = { onShare("$g\n\n— NurVakti") },
+                                    label = { Text(String.format(t("Mesaj %d"), i + 1)) },
+                                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // 3. Quick Action Hub
         item {
             Spacer(modifier = Modifier.height(18.dp))
@@ -357,15 +422,17 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             val quickActions = listOf(
-                QuickActionItem("Kıble Bulucu", Icons.Default.Explore, GoldChampagne, AppScreen.QIBLA),
-                QuickActionItem("Kur'an Oku", Icons.Default.MenuBook, Color(0xFF42A5F5), AppScreen.QURAN),
-                QuickActionItem("Dijital Tesbih", Icons.Default.Fingerprint, Color(0xFF66BB6A), AppScreen.TASBIH),
-                QuickActionItem("Mübarek Dualar", Icons.Default.AutoAwesome, Color(0xFFFFA726), AppScreen.DUAS),
-                QuickActionItem("Esmaül Hüsna", Icons.Default.Star, Color(0xFFAB47BC), AppScreen.ASMAUL_HUSNA),
-                QuickActionItem("Ramazan & Hatim", Icons.Default.NightlightRound, GoldLight, AppScreen.RAMAZAN_HATIM),
-                QuickActionItem("Kaza Namazı", Icons.Default.FormatListNumbered, Color(0xFFFF7043), AppScreen.KAZA_NAMAZ),
-                QuickActionItem("Zekât Hesapla", Icons.Default.Calculate, Color(0xFF26A69A), AppScreen.ZAKAT_CALCULATOR),
-                QuickActionItem("Aylık Vakitler", Icons.Default.CalendarMonth, Color(0xFF78909C), AppScreen.PRAYER_TIMES)
+                QuickActionItem(t("Namaz Takibi"), Icons.Default.TaskAlt, Color(0xFF26C6DA), AppScreen.PRAYER_TRACKER),
+                QuickActionItem(t("Kıble Bulucu"), Icons.Default.Explore, GoldChampagne, AppScreen.QIBLA),
+                QuickActionItem(t("Yakındaki Camiler"), Icons.Default.Mosque, Color(0xFF8D6E63), AppScreen.HOME),
+                QuickActionItem(t("Kur'an Oku"), Icons.Default.MenuBook, Color(0xFF42A5F5), AppScreen.QURAN),
+                QuickActionItem(t("Dijital Tesbih"), Icons.Default.Fingerprint, Color(0xFF66BB6A), AppScreen.TASBIH),
+                QuickActionItem(t("Mübarek Dualar"), Icons.Default.AutoAwesome, Color(0xFFFFA726), AppScreen.DUAS),
+                QuickActionItem(t("Esmaül Hüsna"), Icons.Default.Star, Color(0xFFAB47BC), AppScreen.ASMAUL_HUSNA),
+                QuickActionItem(t("Ramazan & Hatim"), Icons.Default.NightlightRound, GoldLight, AppScreen.RAMAZAN_HATIM),
+                QuickActionItem(t("Kaza Namazı"), Icons.Default.FormatListNumbered, Color(0xFFFF7043), AppScreen.KAZA_NAMAZ),
+                QuickActionItem(t("Zekât Hesapla"), Icons.Default.Calculate, Color(0xFF26A69A), AppScreen.ZAKAT_CALCULATOR),
+                QuickActionItem(t("Aylık Vakitler"), Icons.Default.CalendarMonth, Color(0xFF78909C), AppScreen.PRAYER_TIMES)
             )
 
             LazyRow(
@@ -378,7 +445,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .width(110.dp)
                             .clip(RoundedCornerShape(18.dp))
-                            .clickable { onNavigate(item.targetScreen) }
+                            .clickable { if (item.icon == Icons.Default.Mosque) onFindMosques() else onNavigate(item.targetScreen) }
                             .testTag("quick_action_${item.title.lowercase().replace(" ", "_")}"),
                         shape = RoundedCornerShape(18.dp),
                         color = MaterialTheme.colorScheme.surface,
@@ -581,9 +648,9 @@ fun HomeScreen(
                             }
                             Text(
                                 text = if (uiState.isPremiumActive)
-                                    "Ayrıcalıklı temalar ve hafızlık araçlarınız hazır"
+                                    t("Pro ayrıcalıklarınız açık")
                                 else
-                                    "Kâbe hat teması, hıfz stüdyosu ve kaza defterini inceleyin",
+                                    t("Kâbe Örtüsü teması, hıfz modu ve aylık analizler"),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 ),
@@ -603,77 +670,103 @@ fun HomeScreen(
             }
         }
 
-        // 6. Featured Ayah of the Day
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(20.dp)),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Günün Ayet-i Kerimesi",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                ),
-                                maxLines = 1
-                            )
-                        }
+        // 6. Günün ayeti, hadisi ve duası
+        uiState.verseOfDay?.let { v ->
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                DailyCard(
+                    icon = Icons.Default.AutoAwesome,
+                    title = t("Günün Ayeti"),
+                    reference = v.reference,
+                    arabic = v.arabic,
+                    text = v.text,
+                    onClick = { onOpenAyah(v.surah, v.ayah) },
+                    onShare = { onShare("${v.arabic}\n\n\"${v.text}\"\n\n(${v.reference} • NurVakti)") }
+                )
+            }
+        }
+        uiState.hadithOfDay?.let { h ->
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                DailyCard(
+                    icon = Icons.Default.FormatQuote,
+                    title = t("Günün Hadisi"),
+                    reference = h.source,
+                    arabic = null,
+                    text = h.text,
+                    onClick = null,
+                    onShare = { onShare("\"${h.text}\"\n(${h.source})\n\n— NurVakti") }
+                )
+            }
+        }
+        uiState.duaOfDay?.let { d ->
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                DailyCard(
+                    icon = Icons.Default.VolunteerActivism,
+                    title = t("Günün Duası") + " • " + d.titleTr,
+                    reference = d.source,
+                    arabic = d.arabicText,
+                    text = d.meaningTr,
+                    onClick = { onNavigate(AppScreen.DUAS) },
+                    onShare = { onShare("${d.titleTr}\n\n${d.arabicText}\n\n${d.pronunciationTr}\n\n${d.meaningTr}\n(${d.source})\n\n— NurVakti") }
+                )
+            }
+        }
+    }
+}
 
-                        Text(
-                            text = "İnşirâh, 5-6",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            maxLines = 1
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Right,
-                            lineHeight = 28.sp
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "\"Şüphesiz her zorlukla beraber bir kolaylık vardır. Evet, muhakkak her zorlukla beraber bir kolaylık vardır.\"",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 20.sp
-                        )
-                    )
+@Composable
+private fun DailyCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    reference: String,
+    arabic: String?,
+    text: String,
+    onClick: (() -> Unit)?,
+    onShare: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = onShare, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Share, contentDescription = t("Paylaş"), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 }
             }
+            if (!arabic.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = arabic,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = QuranFont, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Right,
+                        lineHeight = 34.sp, fontSize = 21.sp, textDirection = androidx.compose.ui.text.style.TextDirection.Rtl
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "\"$text\"",
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(reference, style = MaterialTheme.typography.labelSmall, color = GoldChampagne)
         }
     }
 }
