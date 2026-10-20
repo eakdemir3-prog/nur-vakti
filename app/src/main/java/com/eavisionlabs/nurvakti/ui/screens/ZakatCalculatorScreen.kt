@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.screens
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -57,7 +58,7 @@ fun ZakatCalculatorScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Zekât Hesaplayıcı",
+                        text = t("Zekât Hesaplayıcı"),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -66,7 +67,7 @@ fun ZakatCalculatorScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Geri",
+                            contentDescription = t("Geri"),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -105,7 +106,7 @@ fun ZakatCalculatorScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Nisap Miktarı: Diyanet ve fıkıh kriterlerine göre 80.18 gram altın veya dengi servettir. 1 kamerî yıl boyunca nisap üstünde kalan birikimden %2.5 (1/40) zekât verilir.",
+                            text = t("Nisap Miktarı: Diyanet ve fıkıh kriterlerine göre 80.18 gram altın veya dengi servettir. 1 kamerî yıl boyunca nisap üstünde kalan birikimden %2.5 (1/40) zekât verilir."),
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = 18.sp
@@ -162,7 +163,7 @@ fun ZakatCalculatorScreen(
             // Input Fields
             item {
                 Text(
-                    text = "Varlık ve Borç Bilgileriniz",
+                    text = t("Varlık ve Borç Bilgileriniz"),
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
@@ -177,8 +178,8 @@ fun ZakatCalculatorScreen(
                         goldGramPriceText = it
                         recalculate()
                     },
-                    label = { Text("Altın Gram Fiyatı (₺/gram) - Düzenlenebilir") },
-                    supportingText = { Text("Kullanıcı tarafından serbestçe güncellenebilir") },
+                    label = { Text(t("Altın Gram Fiyatı (₺/gram) - Düzenlenebilir")) },
+                    supportingText = { Text(t("Kullanıcı tarafından serbestçe güncellenebilir")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -198,7 +199,7 @@ fun ZakatCalculatorScreen(
                         goldGramsText = it
                         recalculate()
                     },
-                    label = { Text("Altın ve Ziynet Miktarı (Gram)") },
+                    label = { Text(t("Altın ve Ziynet Miktarı (Gram)")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -218,7 +219,7 @@ fun ZakatCalculatorScreen(
                         cashTryText = it
                         recalculate()
                     },
-                    label = { Text("Nakit Para ve Banka Mevduatı (₺)") },
+                    label = { Text(t("Nakit Para ve Banka Mevduatı (₺)")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -238,7 +239,7 @@ fun ZakatCalculatorScreen(
                         goodsTryText = it
                         recalculate()
                     },
-                    label = { Text("Ticari Mallar ve Alacaklar (₺)") },
+                    label = { Text(t("Ticari Mallar ve Alacaklar (₺)")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -258,7 +259,7 @@ fun ZakatCalculatorScreen(
                         debtsTryText = it
                         recalculate()
                     },
-                    label = { Text("Vadesi Gelmiş Borçlar (₺ - Düşülecek)") },
+                    label = { Text(t("Vadesi Gelmiş Borçlar (₺ - Düşülecek)")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -285,13 +286,13 @@ fun ZakatCalculatorScreen(
                 ) {
                     Icon(Icons.Default.Calculate, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Zekâtı Hesapla", fontWeight = FontWeight.Bold)
+                    Text(t("Zekâtı Hesapla"), fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Bilgilendirme Notu: Zekât yükümlülüğü için servetin temel ihtiyaçlar (havâic-i asliyye) dışında nisap miktarını aşması ve üzerinden bir hicrî yıl geçmesi gerekir. Karmaşık ortaklıklar ve özel fıkhî durumlar için il müftülüklerine danışınız.",
+                    text = t("Bilgilendirme Notu: Zekât yükümlülüğü için servetin temel ihtiyaçlar (havâic-i asliyye) dışında nisap miktarını aşması ve üzerinden bir hicrî yıl geçmesi gerekir. Karmaşık ortaklıklar ve özel fıkhî durumlar için il müftülüklerine danışınız."),
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,

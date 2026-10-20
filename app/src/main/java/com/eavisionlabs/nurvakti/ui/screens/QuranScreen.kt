@@ -138,7 +138,7 @@ fun QuranScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowForward,
-                            contentDescription = "Devam Et"
+                            contentDescription = t("Devam Et")
                         )
                     }
                 }
@@ -204,7 +204,7 @@ fun QuranScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Ara",
+                        contentDescription = t("Ara"),
                         tint = GoldChampagne
                     )
                 },
@@ -402,7 +402,7 @@ fun QuranScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.PlayCircleFilled,
-                                contentDescription = "Dinle",
+                                contentDescription = t("Dinle"),
                                 tint = GoldChampagne
                             )
                         }
@@ -413,7 +413,7 @@ fun QuranScreen(
                         ) {
                             Icon(
                                 imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                                contentDescription = "Favori",
+                                contentDescription = t("Favori"),
                                 tint = if (isFav) GoldChampagne else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }

@@ -182,7 +182,7 @@ fun BarChart(data: List<DayStat>, maxValue: Int, modifier: Modifier = Modifier, 
 fun ProBadge() {
     Surface(shape = RoundedCornerShape(6.dp), color = GoldChampagne) {
         Text(
-            "PRO", modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+            t("PRO"), modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
             fontSize = 10.sp, fontWeight = FontWeight.Bold, color = EmeraldDarkest
         )
     }

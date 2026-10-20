@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.screens
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -39,18 +40,18 @@ fun OnboardingScreen(
 
     val pages = listOf(
         OnboardingPageData(
-            title = "Namaz Vakitlerini Takip Et",
-            description = "Bulunduğunuz şehre ve koordinatlara göre hassas Diyanet uyumlu vakitler, geri sayım ve ezan bildirimleri.",
+            title = t("Namaz Vakitlerini Takip Et"),
+            description = t("Bulunduğunuz şehre ve koordinatlara göre hassas Diyanet uyumlu vakitler, geri sayım ve ezan bildirimleri."),
             icon = Icons.Default.AccessTime
         ),
         OnboardingPageData(
-            title = "Kur'an-ı Kerim'i Oku ve Dinle",
-            description = "Eksiksiz 114 Sure, doğrulanmış Uthmani hattı, Diyanet meali ve Alafasy gibi seçkin kârilerden sesli tilavet.",
+            title = t("Kur'an-ı Kerim'i Oku ve Dinle"),
+            description = t("Eksiksiz 114 Sure, doğrulanmış Uthmani hattı, Diyanet meali ve Alafasy gibi seçkin kârilerden sesli tilavet."),
             icon = Icons.Default.MenuBook
         ),
         OnboardingPageData(
-            title = "Kıbleyi Bul ve İbadetlerini Yaşa",
-            description = "Gerçek pusula sensörüyle Kâbe istikameti, dokunsal dijital tesbih, mübarek dualar ve 30 cüz hatim takibi.",
+            title = t("Kıbleyi Bul ve İbadetlerini Yaşa"),
+            description = t("Gerçek pusula sensörüyle Kâbe istikameti, dokunsal dijital tesbih, mübarek dualar ve 30 cüz hatim takibi."),
             icon = Icons.Default.Explore
         )
     )
@@ -79,7 +80,7 @@ fun OnboardingScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.nurvakti_icon_1792354892507),
-                    contentDescription = "NurVakti Logo",
+                    contentDescription = t("NurVakti Logo"),
                     modifier = Modifier.size(60.dp).clip(CircleShape)
                 )
             }
@@ -87,7 +88,7 @@ fun OnboardingScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "NurVakti",
+                text = t("NurVakti"),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = GoldLight,
@@ -95,7 +96,7 @@ fun OnboardingScreen(
                 )
             )
             Text(
-                text = "Premium Kur'an ve İslami Yaşam",
+                text = t("Premium Kur'an ve İslami Yaşam"),
                 style = MaterialTheme.typography.bodySmall.copy(color = SoftGrey)
             )
         }
@@ -174,7 +175,7 @@ fun OnboardingScreen(
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "Konum izni: Vakitleri ve kıbleyi tam hesaplamak içindir. İzin vermezseniz manuel şehir seçimiyle devam edebilirsiniz.",
+                    text = t("Konum izni: Vakitleri ve kıbleyi tam hesaplamak içindir. İzin vermezseniz manuel şehir seçimiyle devam edebilirsiniz."),
                     style = MaterialTheme.typography.labelSmall.copy(color = SoftGrey, fontSize = 11.sp)
                 )
             }
@@ -216,7 +217,7 @@ fun OnboardingScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        text = "Başlayalım",
+                        text = t("Başlayalım"),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         )
@@ -239,7 +240,7 @@ fun OnboardingScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        text = "İleri",
+                        text = t("İleri"),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         )

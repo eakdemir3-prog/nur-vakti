@@ -72,7 +72,7 @@ fun TasbihScreen(
                 title = { Text(t("Dijital Tesbih"), fontWeight = FontWeight.Bold, color = GoldLight) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = GoldChampagne)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("Geri"), tint = GoldChampagne)
                     }
                 },
                 actions = {
@@ -86,7 +86,7 @@ fun TasbihScreen(
                         Icon(Icons.Default.BarChart, contentDescription = t("Geçmiş"), tint = GoldChampagne)
                     }
                     IconButton(onClick = { onSetResetDialogOpen(true) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Sıfırla", tint = SoftGrey)
+                        Icon(Icons.Default.Refresh, contentDescription = t("Sıfırla"), tint = SoftGrey)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = EmeraldDarkest)
@@ -228,7 +228,7 @@ fun TasbihScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Çekmek için dokun",
+                        text = t("Çekmek için dokun"),
                         style = MaterialTheme.typography.labelSmall.copy(
                             color = GoldLight.copy(alpha = 0.7f),
                             fontSize = 11.sp
@@ -278,13 +278,13 @@ fun TasbihScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Undo,
-                            contentDescription = "Geri Al",
+                            contentDescription = t("Geri Al"),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Geri Al (-1)",
+                            text = t("Geri Al (-1)"),
                             style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }
@@ -300,7 +300,7 @@ fun TasbihScreen(
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            text = "Bugünkü Toplam",
+                            text = t("Bugünkü Toplam"),
                             style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
                         )
                         Text(
@@ -320,19 +320,19 @@ fun TasbihScreen(
     if (uiState.isResetConfirmDialogOpen) {
         AlertDialog(
             onDismissRequest = { onSetResetDialogOpen(false) },
-            title = { Text("Sayacı Sıfırla") },
-            text = { Text("Mevcut zikir sayacını sıfırlamak istediğinize emin misiniz?") },
+            title = { Text(t("Sayacı Sıfırla")) },
+            text = { Text(t("Mevcut zikir sayacını sıfırlamak istediğinize emin misiniz?")) },
             confirmButton = {
                 Button(
                     onClick = onConfirmReset,
                     colors = ButtonDefaults.buttonColors(containerColor = GoldChampagne, contentColor = EmeraldDarkest)
                 ) {
-                    Text("Evet, Sıfırla")
+                    Text(t("Evet, Sıfırla"))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onSetResetDialogOpen(false) }) {
-                    Text("Vazgeç")
+                    Text(t("Vazgeç"))
                 }
             }
         )

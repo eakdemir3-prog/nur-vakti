@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.components
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -139,7 +140,7 @@ fun ExpandedAudioPlayerSheet(
                 IconButton(onClick = onPlayPrevious) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "Önceki Sure",
+                        contentDescription = t("Önceki Sure"),
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(32.dp)
                     )
@@ -148,7 +149,7 @@ fun ExpandedAudioPlayerSheet(
                 IconButton(onClick = { onSeekRelative(-10) }) {
                     Icon(
                         imageVector = Icons.Default.Replay10,
-                        contentDescription = "10sn Geri",
+                        contentDescription = t("10sn Geri"),
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(28.dp)
                     )
@@ -172,7 +173,7 @@ fun ExpandedAudioPlayerSheet(
                     } else {
                         Icon(
                             imageVector = if (playerState.status == PlaybackStatus.PLAYING) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = "Oynat / Duraklat",
+                            contentDescription = t("Oynat / Duraklat"),
                             modifier = Modifier.size(36.dp)
                         )
                     }
@@ -181,7 +182,7 @@ fun ExpandedAudioPlayerSheet(
                 IconButton(onClick = { onSeekRelative(10) }) {
                     Icon(
                         imageVector = Icons.Default.Forward10,
-                        contentDescription = "10sn İleri",
+                        contentDescription = t("10sn İleri"),
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(28.dp)
                     )
@@ -190,7 +191,7 @@ fun ExpandedAudioPlayerSheet(
                 IconButton(onClick = onPlayNext) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Sonraki Sure",
+                        contentDescription = t("Sonraki Sure"),
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(32.dp)
                     )
@@ -212,7 +213,7 @@ fun ExpandedAudioPlayerSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Speed,
-                        contentDescription = "Hız",
+                        contentDescription = t("Hız"),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -228,7 +229,7 @@ fun ExpandedAudioPlayerSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Timer,
-                        contentDescription = "Uyku Zamanlayıcı",
+                        contentDescription = t("Uyku Zamanlayıcı"),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -246,7 +247,7 @@ fun ExpandedAudioPlayerSheet(
     if (showSpeedDialog) {
         AlertDialog(
             onDismissRequest = { showSpeedDialog = false },
-            title = { Text("Oynatma Hızı") },
+            title = { Text(t("Oynatma Hızı")) },
             text = {
                 Column {
                     listOf(0.75f, 1.0f, 1.25f, 1.5f).forEach { speed ->
@@ -271,7 +272,7 @@ fun ExpandedAudioPlayerSheet(
             },
             confirmButton = {
                 TextButton(onClick = { showSpeedDialog = false }) {
-                    Text("Kapat")
+                    Text(t("Kapat"))
                 }
             }
         )
@@ -280,7 +281,7 @@ fun ExpandedAudioPlayerSheet(
     if (showSleepTimerDialog) {
         AlertDialog(
             onDismissRequest = { showSleepTimerDialog = false },
-            title = { Text("Uyku Zamanlayıcısı") },
+            title = { Text(t("Uyku Zamanlayıcısı")) },
             text = {
                 Column {
                     listOf(
@@ -311,7 +312,7 @@ fun ExpandedAudioPlayerSheet(
             },
             confirmButton = {
                 TextButton(onClick = { showSleepTimerDialog = false }) {
-                    Text("Tamam")
+                    Text(t("Tamam"))
                 }
             }
         )

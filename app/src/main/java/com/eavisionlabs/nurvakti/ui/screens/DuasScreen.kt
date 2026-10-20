@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.screens
 
+import com.eavisionlabs.nurvakti.i18n.t
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -47,10 +48,10 @@ fun DuasScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mübarek Dualar", fontWeight = FontWeight.Bold, color = GoldLight) },
+                title = { Text(t("Mübarek Dualar"), fontWeight = FontWeight.Bold, color = GoldLight) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = GoldChampagne)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("Geri"), tint = GoldChampagne)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = EmeraldDarkest)
@@ -73,9 +74,9 @@ fun DuasScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("dua_search_input"),
-                    placeholder = { Text("Dua ara (Örn: şifa, yolculuk, rızık)...") },
+                    placeholder = { Text(t("Dua ara (Örn: şifa, yolculuk, rızık)...")) },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Ara", tint = GoldChampagne)
+                        Icon(Icons.Default.Search, contentDescription = t("Ara"), tint = GoldChampagne)
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
@@ -162,7 +163,7 @@ fun DuasScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.ContentCopy,
-                                        contentDescription = "Kopyala",
+                                        contentDescription = t("Kopyala"),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -183,7 +184,7 @@ fun DuasScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Share,
-                                        contentDescription = "Paylaş",
+                                        contentDescription = t("Paylaş"),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -195,7 +196,7 @@ fun DuasScreen(
                                 ) {
                                     Icon(
                                         imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                                        contentDescription = "Favori",
+                                        contentDescription = t("Favori"),
                                         tint = if (isFav) GoldChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(18.dp)
                                     )

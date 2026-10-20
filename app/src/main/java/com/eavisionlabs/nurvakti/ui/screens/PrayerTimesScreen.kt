@@ -56,7 +56,7 @@ fun PrayerTimesScreen(
             ) {
                 Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                     Text(
-                        text = "Namaz Vakitleri",
+                        text = t("Namaz Vakitleri"),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -343,7 +343,7 @@ fun PrayerTimesScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.VolumeUp,
-                        contentDescription = "Ezan Sesi",
+                        contentDescription = t("Ezan Sesi"),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -386,7 +386,7 @@ fun PrayerTimesScreen(
                         )
                     )
                     IconButton(onClick = { onOpenMonthlySchedule(false) }) {
-                        Icon(Icons.Default.Close, contentDescription = "Kapat", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Default.Close, contentDescription = t("Kapat"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -400,13 +400,13 @@ fun PrayerTimesScreen(
                         .padding(vertical = 8.dp, horizontal = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Tarih", modifier = Modifier.weight(1.2f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
-                    Text("İmsak", modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
-                    Text("Güneş", modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
-                    Text("Öğle", modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
-                    Text("İkindi", modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
-                    Text("Akşam", modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
-                    Text("Yatsı", modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
+                    Text(t("Tarih"), modifier = Modifier.weight(1.2f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
+                    Text(t("İmsak"), modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
+                    Text(t("Güneş"), modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
+                    Text(t("Öğle"), modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
+                    Text(t("İkindi"), modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
+                    Text(t("Akşam"), modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
+                    Text(t("Yatsı"), modifier = Modifier.weight(1f), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldChampagne)
                 }
 
                 Spacer(modifier = Modifier.height(6.dp))

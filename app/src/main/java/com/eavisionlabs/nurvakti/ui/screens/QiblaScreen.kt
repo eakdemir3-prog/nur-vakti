@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.screens
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -53,10 +54,10 @@ fun QiblaScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Kıble Bulucu (Pusula)", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
+                title = { Text(t("Kıble Bulucu (Pusula)"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("Geri"), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -111,7 +112,7 @@ fun QiblaScreen(
                             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = GoldChampagne, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Kıble Yönündesiniz!",
+                                text = t("Kıble Yönündesiniz!"),
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = GoldChampagne
@@ -121,7 +122,7 @@ fun QiblaScreen(
                     }
                 } else {
                     Text(
-                        text = "Telefonunuzu Kâbe işaretine doğru çeviriniz",
+                        text = t("Telefonunuzu Kâbe işaretine doğru çeviriniz"),
                         style = MaterialTheme.typography.bodySmall.copy(color = SoftGrey)
                     )
                 }
@@ -208,7 +209,7 @@ fun QiblaScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Mosque,
-                        contentDescription = "Kâbe",
+                        contentDescription = t("Kâbe"),
                         tint = GoldChampagne,
                         modifier = Modifier.size(24.dp)
                     )
@@ -248,7 +249,7 @@ fun QiblaScreen(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "Doğru sonuç için telefonunuzu metal eşyalardan uzak tutun ve havada '8' çizecek şekilde hareket ettirerek pusulayı kalibre ediniz.",
+                        text = t("Doğru sonuç için telefonunuzu metal eşyalardan uzak tutun ve havada '8' çizecek şekilde hareket ettirerek pusulayı kalibre ediniz."),
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center

@@ -72,7 +72,7 @@ fun ProfileScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Profil",
+                            contentDescription = t("Profil"),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(54.dp)
                         )
@@ -82,7 +82,7 @@ fun ProfileScreen(
 
                     Column {
                         Text(
-                            text = "Mümin Kul",
+                            text = t("Mümin Kul"),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -93,7 +93,7 @@ fun ProfileScreen(
                             style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
-                            text = "Cihaz İçi Güvenli Kayıt • Üyelik Zorunlu Değildir",
+                            text = t("Cihaz İçi Güvenli Kayıt • Üyelik Zorunlu Değildir"),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.primary,
                                 fontSize = 10.sp
@@ -138,7 +138,7 @@ fun ProfileScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.WorkspacePremium,
-                                contentDescription = "Pro",
+                                contentDescription = t("Pro"),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(28.dp)
                             )
@@ -149,7 +149,7 @@ fun ProfileScreen(
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "NurVakti Pro",
+                                    text = t("NurVakti Pro"),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
@@ -206,7 +206,7 @@ fun ProfileScreen(
         // 3. Spiritual Stats Grid (Namaz, Zikir, Kur'an, Hatim)
         item {
             Text(
-                text = "İbadet ve İlerleme Takibiniz",
+                text = t("İbadet ve İlerleme Takibiniz"),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -263,7 +263,7 @@ fun ProfileScreen(
         // 4. Settings Items
         item {
             Text(
-                text = "Uygulama ve Tercihler",
+                text = t("Uygulama ve Tercihler"),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -380,7 +380,7 @@ fun ProfileScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showSourcesDialog = false }) {
-                    Text("Anladım", color = GoldChampagne)
+                    Text(t("Anladım"), color = GoldChampagne)
                 }
             }
         )
@@ -401,7 +401,7 @@ fun ProfileScreen(
                         tint = GoldChampagne
                     )
                     Text(
-                        "Gizlilik Politikası",
+                        t("Gizlilik Politikası"),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -415,13 +415,13 @@ fun ProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "NurVakti (" + "com.aistudio.nurvakti.app" + ") kullanıcı mahremiyetini ve ibadet gizliliğini temel ilke kabul eder:",
+                        text = t("NurVakti (") + "com.aistudio.nurvakti.app" + ") kullanıcı mahremiyetini ve ibadet gizliliğini temel ilke kabul eder:",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
                         color = GoldChampagne
                     )
                     Text(
-                        text = "1. Konum Bilgisi: Yalnızca namaz vakitlerinin ve kıble açısının cihaz üzerinde yerel hesaplanması için kullanılır. Hiçbir sunucuya gönderilmez.\n\n" +
+                        text = t("1. Konum Bilgisi: Yalnızca namaz vakitlerinin ve kıble açısının cihaz üzerinde yerel hesaplanması için kullanılır. Hiçbir sunucuya gönderilmez.\n\n") +
                                "2. Sensörler: Pusula verisi ekranda kıbleyi göstermek için anlık okunur, asla kaydedilmez.\n\n" +
                                "3. Cihaz İçi Depolama: Hatim, zikir, kaza ve favori kayıtlarınız sadece telefonunuzda saklanır.\n\n" +
                                "4. Reklamsız & Güvenli: Kullanıcıyı takip eden ticari kodlar veya üçüncü taraf reklam modülleri içermez.\n\n" +
@@ -444,7 +444,7 @@ fun ProfileScreen(
                         }
                     }
                 ) {
-                    Text("Web'de Aç (GitHub)", color = GoldChampagne)
+                    Text(t("Web'de Aç (GitHub)"), color = GoldChampagne)
                 }
             },
             dismissButton = {
@@ -456,7 +456,7 @@ fun ProfileScreen(
                         Toast.makeText(context, "Gizlilik politikası bağlantısı kopyalandı", Toast.LENGTH_SHORT).show()
                     }
                 ) {
-                    Text("Linki Kopyala", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(t("Linki Kopyala"), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )

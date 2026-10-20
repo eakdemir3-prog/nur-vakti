@@ -56,7 +56,7 @@ fun RamazanHatimScreen(
                 title = { Text(t("Ramazan & Hatim Takibi"), fontWeight = FontWeight.Bold, color = GoldLight) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = GoldChampagne)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("Geri"), tint = GoldChampagne)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = EmeraldDarkest)
@@ -188,7 +188,7 @@ fun RamazanHatimScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "30 Cüz Hatim Takibi",
+                                    text = t("30 Cüz Hatim Takibi"),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = CreamWhite
@@ -232,7 +232,7 @@ fun RamazanHatimScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "Okuduğunuz cüzlere dokunarak işaretleyin:",
+                            text = t("Okuduğunuz cüzlere dokunarak işaretleyin:"),
                             style = MaterialTheme.typography.labelSmall.copy(color = SoftGrey)
                         )
 
@@ -306,14 +306,14 @@ fun RamazanHatimScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Zekât ve Fitre Hesaplayıcı",
+                                    text = t("Zekât ve Fitre Hesaplayıcı"),
                                     style = MaterialTheme.typography.titleSmall.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = CreamWhite
                                     )
                                 )
                                 Text(
-                                    text = "Nisap miktarı ve %2.5 zekât oranı hesaplama",
+                                    text = t("Nisap miktarı ve %2.5 zekât oranı hesaplama"),
                                     style = MaterialTheme.typography.bodySmall.copy(color = SoftGrey)
                                 )
                             }

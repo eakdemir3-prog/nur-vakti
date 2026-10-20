@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.screens
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,15 +41,15 @@ fun KazaNamazScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Kaza Namazı Defteri", fontWeight = FontWeight.Bold, color = GoldChampagne) },
+                title = { Text(t("Kaza Namazı Defteri"), fontWeight = FontWeight.Bold, color = GoldChampagne) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = GoldChampagne)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("Geri"), tint = GoldChampagne)
                     }
                 },
                 actions = {
                     IconButton(onClick = { showBulkAddDialog = true }) {
-                        Icon(Icons.Default.AddBox, contentDescription = "Toplu Kaza Ekle", tint = GoldChampagne)
+                        Icon(Icons.Default.AddBox, contentDescription = t("Toplu Kaza Ekle"), tint = GoldChampagne)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -76,7 +77,7 @@ fun KazaNamazScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Toplam Kaza Borcu",
+                            text = t("Toplam Kaza Borcu"),
                             style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -149,7 +150,7 @@ fun KazaNamazScreen(
                                     contentColor = EmeraldDarkest
                                 )
                             ) {
-                                Text("-1 Kılındı", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text(t("-1 Kılındı"), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
 
                             Spacer(modifier = Modifier.width(6.dp))
@@ -159,7 +160,7 @@ fun KazaNamazScreen(
                                 onClick = { onUpdateKaza(code, 1) },
                                 modifier = Modifier.size(36.dp)
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = "Ekle", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(Icons.Default.Add, contentDescription = t("Ekle"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -177,7 +178,7 @@ fun KazaNamazScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Hızlı Kaza Ekle",
+                            text = t("Hızlı Kaza Ekle"),
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = GoldChampagne)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -210,9 +211,9 @@ fun KazaNamazScreen(
     if (showBulkAddDialog) {
         AlertDialog(
             onDismissRequest = { showBulkAddDialog = false },
-            title = { Text("Toplu Kaza Namazı Ekle") },
+            title = { Text(t("Toplu Kaza Namazı Ekle")) },
             text = {
-                Text("Kaç günlük kaza namazı borcu eklemek istiyorsunuz? Her gün için 6 vakit (Sabah, Öğle, İkindi, Akşam, Yatsı, Vitir) eklenecektir.")
+                Text(t("Kaç günlük kaza namazı borcu eklemek istiyorsunuz? Her gün için 6 vakit (Sabah, Öğle, İkindi, Akşam, Yatsı, Vitir) eklenecektir."))
             },
             confirmButton = {
                 Button(
@@ -221,12 +222,12 @@ fun KazaNamazScreen(
                         showBulkAddDialog = false
                     }
                 ) {
-                    Text("+1 Ay (30 Gün) Ekle")
+                    Text(t("+1 Ay (30 Gün) Ekle"))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showBulkAddDialog = false }) {
-                    Text("Vazgeç")
+                    Text(t("Vazgeç"))
                 }
             }
         )

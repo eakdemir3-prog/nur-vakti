@@ -32,11 +32,20 @@ jobs:
             -storepass android -keypass android -keyalg RSA -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Unit tests
-        run: ./gradlew --no-configuration-cache testDebugUnitTest --stacktrace
+      - name: Build test APK + release AAB + unit tests
+        run: |
+          set -o pipefail
+          ./gradlew --no-configuration-cache assembleDebug bundleRelease testDebugUnitTest --continue 2>&1 | tee build.log
 
-      - name: Build test APK + release AAB
-        run: ./gradlew --no-configuration-cache assembleDebug bundleRelease --stacktrace
+      - name: Publish failure log
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          grep -E "^e: |error:|FAILED|What went wrong|expected:|AssertionError|Exception" -A3 build.log > errors.txt || true
+          find app/build/test-results -name "*.xml" -exec cat {} + > tests.xml 2>/dev/null || true
+          gh release create "log-${{ github.run_number }}" build.log errors.txt tests.xml \
+            --target "${{ github.sha }}" --prerelease --title "CI log #${{ github.run_number }}" --notes "failed build log"
 
       - name: Collect outputs
         run: |

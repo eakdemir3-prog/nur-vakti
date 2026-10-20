@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.components
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -45,7 +46,7 @@ fun NurVaktiTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.NightlightRound,
-                        contentDescription = "NurVakti Logo",
+                        contentDescription = t("NurVakti Logo"),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
@@ -55,7 +56,7 @@ fun NurVaktiTopBar(
 
                 Column {
                     Text(
-                        text = "NurVakti",
+                        text = t("NurVakti"),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
@@ -63,7 +64,7 @@ fun NurVaktiTopBar(
                         )
                     )
                     Text(
-                        text = "İslami Yaşam & Kur'an",
+                        text = t("İslami Yaşam & Kur'an"),
                         style = MaterialTheme.typography.labelSmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -88,7 +89,7 @@ fun NurVaktiTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Şehir Seç",
+                        contentDescription = t("Şehir Seç"),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
@@ -110,7 +111,7 @@ fun NurVaktiTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.WorkspacePremium,
-                    contentDescription = "NurVakti Pro",
+                    contentDescription = t("NurVakti Pro"),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -121,7 +122,7 @@ fun NurVaktiTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Settings,
-                    contentDescription = "Ayarlar",
+                    contentDescription = t("Ayarlar"),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -162,13 +163,13 @@ fun NurVaktiBottomNav(
                 icon = {
                     Icon(
                         imageVector = if (isSelected) icons.first else icons.second,
-                        contentDescription = label,
+                        contentDescription = t(label),
                         modifier = Modifier.size(22.dp)
                     )
                 },
                 label = {
                     Text(
-                        text = label,
+                        text = t(label),
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )

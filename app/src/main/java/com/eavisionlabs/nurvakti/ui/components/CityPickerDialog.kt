@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.components
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,7 +51,7 @@ fun CityPickerDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Şehir ve Konum Seçimi",
+                    text = t("Şehir ve Konum Seçimi"),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -59,7 +60,7 @@ fun CityPickerDialog(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Kapat",
+                        contentDescription = t("Kapat"),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -90,7 +91,7 @@ fun CityPickerDialog(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Konumunuz alınıyor...",
+                            text = t("Konumunuz alınıyor..."),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -99,13 +100,13 @@ fun CityPickerDialog(
                     } else {
                         Icon(
                             imageVector = Icons.Default.MyLocation,
-                            contentDescription = "GPS",
+                            contentDescription = t("GPS"),
                             tint = GoldChampagne,
                             modifier = Modifier.size(22.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Konumumu Otomatik Bul (GPS)",
+                            text = t("Konumumu Otomatik Bul (GPS)"),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -126,7 +127,7 @@ fun CityPickerDialog(
                     .testTag("city_search_input"),
                 placeholder = {
                     Text(
-                        "İl veya ülke ara (Örn: İstanbul, Ankara, Mekke)...",
+                        t("İl veya ülke ara (Örn: İstanbul, Ankara, Mekke)..."),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -135,7 +136,7 @@ fun CityPickerDialog(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Ara",
+                        contentDescription = t("Ara"),
                         tint = GoldChampagne
                     )
                 },
@@ -204,7 +205,7 @@ fun CityPickerDialog(
                             if (isCurrent) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Seçili",
+                                    contentDescription = t("Seçili"),
                                     tint = GoldChampagne
                                 )
                             }

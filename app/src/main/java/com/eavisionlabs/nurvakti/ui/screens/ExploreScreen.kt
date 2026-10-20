@@ -199,7 +199,7 @@ fun ExploreScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.WorkspacePremium,
-                                contentDescription = "Pro",
+                                contentDescription = t("Pro"),
                                 tint = GoldChampagne,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -225,7 +225,7 @@ fun ExploreScreen(
                     }
                     Icon(
                         imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Aç",
+                        contentDescription = t("Aç"),
                         tint = GoldChampagne,
                         modifier = Modifier.size(20.dp)
                     )
@@ -242,14 +242,14 @@ fun ExploreScreen(
                     .testTag("explore_search_input"),
                 placeholder = {
                     Text(
-                        "Özellik ara (Örn: kıble, zekat, tesbih, dua)...",
+                        t("Özellik ara (Örn: kıble, zekat, tesbih, dua)..."),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     )
                 },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = "Ara", tint = GoldChampagne)
+                    Icon(Icons.Default.Search, contentDescription = t("Ara"), tint = GoldChampagne)
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),

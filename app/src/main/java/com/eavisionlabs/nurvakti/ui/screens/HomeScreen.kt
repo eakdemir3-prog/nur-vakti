@@ -70,7 +70,7 @@ fun HomeScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.nurvakti_hero_1792354904566),
-                    contentDescription = "Manevi Cami Manzarası",
+                    contentDescription = t("Manevi Cami Manzarası"),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -96,7 +96,7 @@ fun HomeScreen(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     Text(
-                        text = "Esselâmu Aleyküm ve Rahmetullâh",
+                        text = t("Esselâmu Aleyküm ve Rahmetullâh"),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             color = GoldLight
@@ -105,7 +105,7 @@ fun HomeScreen(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "Bugün kalbine ve vaktine huzurla başla.",
+                        text = t("Bugün kalbine ve vaktine huzurla başla."),
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = CreamWhite.copy(alpha = 0.9f)
                         ),
@@ -173,7 +173,7 @@ fun HomeScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.MyLocation,
-                                    contentDescription = "Konumumu Otomatik Bul",
+                                    contentDescription = t("Konumumu Otomatik Bul"),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -234,7 +234,7 @@ fun HomeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = "Sıradaki:",
+                                    text = t("Sıradaki:"),
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -270,7 +270,7 @@ fun HomeScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "Kalan Süre",
+                                    text = t("Kalan Süre"),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 10.sp
@@ -411,7 +411,7 @@ fun HomeScreen(
         item {
             Spacer(modifier = Modifier.height(18.dp))
             Text(
-                text = "Hızlı İbadet ve Araçlar",
+                text = t("Hızlı İbadet ve Araçlar"),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -505,7 +505,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Günün Namaz Takibi",
+                            text = t("Günün Namaz Takibi"),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -613,7 +613,7 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.WorkspacePremium,
-                                contentDescription = "Pro",
+                                contentDescription = t("Pro"),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -624,7 +624,7 @@ fun HomeScreen(
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "NurVakti Pro",
+                                    text = t("NurVakti Pro"),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
@@ -662,7 +662,7 @@ fun HomeScreen(
 
                     Icon(
                         imageVector = Icons.Default.ArrowForwardIos,
-                        contentDescription = "Detay",
+                        contentDescription = t("Detay"),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )

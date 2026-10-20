@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.screens
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,10 +39,10 @@ fun AsmaulHusnaScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Esmaü'l-Hüsna (99 İsim)", fontWeight = FontWeight.Bold, color = GoldLight) },
+                title = { Text(t("Esmaü'l-Hüsna (99 İsim)"), fontWeight = FontWeight.Bold, color = GoldLight) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = GoldChampagne)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("Geri"), tint = GoldChampagne)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = EmeraldDarkest)
@@ -63,9 +64,9 @@ fun AsmaulHusnaScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("asma_search_input"),
-                    placeholder = { Text("İsim veya anlam ara (Örn: Rahman, Şafi, 1)...") },
+                    placeholder = { Text(t("İsim veya anlam ara (Örn: Rahman, Şafi, 1)...")) },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Ara", tint = GoldChampagne)
+                        Icon(Icons.Default.Search, contentDescription = t("Ara"), tint = GoldChampagne)
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
@@ -162,7 +163,7 @@ fun AsmaulHusnaScreen(
                             ) {
                                 Icon(
                                     imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                                    contentDescription = "Favori",
+                                    contentDescription = t("Favori"),
                                     tint = if (isFav) GoldChampagne else SoftGrey,
                                     modifier = Modifier.size(18.dp)
                                 )

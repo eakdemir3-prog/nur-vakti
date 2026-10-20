@@ -39,7 +39,7 @@ fun PremiumScreen(
     val prices = uiState.premiumPrices
     fun price(id: String) = prices[id] ?: "—"
 
-    SubScreenScaffold(title = "NurVakti Pro", onBack = onBack) { padding ->
+    SubScreenScaffold(title = t("NurVakti Pro"), onBack = onBack) { padding ->
         LazyColumn(
             modifier = modifier.fillMaxSize().padding(padding).testTag("premium_screen"),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)

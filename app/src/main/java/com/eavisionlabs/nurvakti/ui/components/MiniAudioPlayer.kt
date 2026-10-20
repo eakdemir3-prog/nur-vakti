@@ -1,5 +1,6 @@
 package com.eavisionlabs.nurvakti.ui.components
 
+import com.eavisionlabs.nurvakti.i18n.t
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -133,7 +134,7 @@ fun MiniAudioPlayer(
                             } else {
                                 Icon(
                                     imageVector = if (playerState.status == PlaybackStatus.PLAYING) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = "Oynat / Duraklat",
+                                    contentDescription = t("Oynat / Duraklat"),
                                     tint = GoldChampagne
                                 )
                             }
@@ -145,7 +146,7 @@ fun MiniAudioPlayer(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
-                                contentDescription = "Sonraki Sure",
+                                contentDescription = t("Sonraki Sure"),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -156,7 +157,7 @@ fun MiniAudioPlayer(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Kapat",
+                                contentDescription = t("Kapat"),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
