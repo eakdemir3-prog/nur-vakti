@@ -16,10 +16,12 @@
 local.properties
 .env
 debug.keystore
--e 
+
 *.aab
 *.apk
 .aistudio/
 .build-outputs/
 upload_certificate.pem
 public/assets/
+*.jks
+*.keystore

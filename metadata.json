@@ -1,6 +1,0 @@
-{
-  "name": "NurVakti",
-  "description": "Premium Kur'an-ı Kerim ve İslami Yaşam Uygulaması",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
