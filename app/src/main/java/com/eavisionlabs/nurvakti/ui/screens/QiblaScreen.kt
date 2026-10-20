@@ -136,6 +136,8 @@ fun QiblaScreen(
                     .background(EmeraldCard),
                 contentAlignment = Alignment.Center
             ) {
+                val canvasGold = GoldChampagne
+                val canvasGrey = SoftGrey
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = Offset(size.width / 2f, size.height / 2f)
                     val radius = size.minDimension / 2f - 16.dp.toPx()
@@ -154,7 +156,7 @@ fun QiblaScreen(
                         for (i in 0 until 360 step 30) {
                             rotate(degrees = i.toFloat(), pivot = center) {
                                 val tickLength = if (i % 90 == 0) 14.dp.toPx() else 8.dp.toPx()
-                                val tickColor = if (i % 90 == 0) GoldChampagne else SoftGrey.copy(alpha = 0.5f)
+                                val tickColor = if (i % 90 == 0) canvasGold else canvasGrey.copy(alpha = 0.5f)
                                 drawLine(
                                     color = tickColor,
                                     start = Offset(center.x, center.y - radius),
@@ -172,7 +174,7 @@ fun QiblaScreen(
                                 lineTo(center.x + 12.dp.toPx(), center.y - radius + 36.dp.toPx())
                                 close()
                             }
-                            drawPath(path = path, color = GoldChampagne)
+                            drawPath(path = path, color = canvasGold)
                         }
                     }
 
@@ -196,7 +198,7 @@ fun QiblaScreen(
                     }
 
                     // Center Pivot Pin
-                    drawCircle(color = GoldChampagne, radius = 6.dp.toPx(), center = center)
+                    drawCircle(color = canvasGold, radius = 6.dp.toPx(), center = center)
                 }
 
                 // Center Kaaba Icon Badge

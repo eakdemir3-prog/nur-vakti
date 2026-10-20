@@ -118,7 +118,7 @@ fun QuranScreen(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = String.format(t("%1$d. ayet • Sayfa %2$d"), uiState.lastReadAyahNumber, uiState.lastReadPage),
+                                text = String.format(t("%1\$d. ayet • Sayfa %2\$d"), uiState.lastReadAyahNumber, uiState.lastReadPage),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 ),
@@ -157,7 +157,7 @@ fun QuranScreen(
                 Column(Modifier.padding(14.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            String.format(t("Bugün %1$d / %2$d sayfa"), uiState.pagesReadToday, uiState.dailyPageGoal),
+                            String.format(t("Bugün %1\$d / %2\$d sayfa"), uiState.pagesReadToday, uiState.dailyPageGoal),
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f)
                         )
@@ -171,7 +171,7 @@ fun QuranScreen(
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        String.format(t("Hatim ilerlemesi: %1$d / 604 sayfa • Tamamlanan hatim: %2$d"), uiState.hatimPagesRead, uiState.completedHatims),
+                        String.format(t("Hatim ilerlemesi: %1\$d / 604 sayfa • Tamamlanan hatim: %2\$d"), uiState.hatimPagesRead, uiState.completedHatims),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(4.dp))

@@ -373,7 +373,7 @@ fun TasbihScreen(
                 Column {
                     com.eavisionlabs.nurvakti.ui.components.BarChart(uiState.dhikrWeek, maxValue = 100)
                     Spacer(Modifier.height(8.dp))
-                    Text(String.format(t("Bugün: %1$d • Bu hafta: %2$d"), uiState.todayDhikrCompletedTotal, uiState.dhikrWeek.sumOf { it.value }))
+                    Text(String.format(t("Bugün: %1\$d • Bu hafta: %2\$d"), uiState.todayDhikrCompletedTotal, uiState.dhikrWeek.sumOf { it.value }))
                 }
             },
             confirmButton = { TextButton(onClick = { showHistory = false }) { Text(t("Kapat")) } }

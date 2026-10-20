@@ -189,7 +189,7 @@ object CityProvider {
     }
 
     private fun slug(s: String): String = s.lowercase(Locale.ROOT)
-        .replace('ç', 'c').replace('ğ', 'g').replace('ı', 'i').replace('i̇', 'i')
+        .replace('ç', 'c').replace('ğ', 'g').replace('ı', 'i')
         .replace('ö', 'o').replace('ş', 's').replace('ü', 'u').replace('â', 'a').replace('î', 'i')
         .filter { it in 'a'..'z' }
 
