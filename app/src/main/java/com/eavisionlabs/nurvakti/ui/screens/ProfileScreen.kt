@@ -1,0 +1,572 @@
+package com.eavisionlabs.nurvakti.ui.screens
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.eavisionlabs.nurvakti.ui.AppScreen
+import com.eavisionlabs.nurvakti.ui.UiState
+import com.eavisionlabs.nurvakti.i18n.t
+import com.eavisionlabs.nurvakti.ui.theme.*
+
+@Composable
+fun ProfileScreen(
+    uiState: UiState,
+    onNavigate: (AppScreen) -> Unit,
+    onOpenCityPicker: () -> Unit,
+    onToggleTheme: () -> Unit,
+    onOpenPremium: () -> Unit = {},
+    onAutoDetectLocation: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var showSourcesDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
+
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .testTag("profile_screen"),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+    ) {
+        // 1. User Header & Spiritual Identity
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = androidx.compose.foundation.BorderStroke(1.dp, GoldChampagne.copy(alpha = 0.35f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(GoldChampagne.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = t("Profil"),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(54.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column {
+                        Text(
+                            text = t("Mümin Kul"),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        Text(
+                            text = "Konum: ${uiState.selectedCity.displayName}, ${uiState.selectedCity.country}",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                        Text(
+                            text = t("Cihaz İçi Güvenli Kayıt • Üyelik Zorunlu Değildir"),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 10.sp
+                            )
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // 2. NurVakti Pro Card (Premier Pro Satın Alma / Üyelik Ekranı)
+        item {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable { onOpenPremium() }
+                    .testTag("pro_purchase_card"),
+                shape = RoundedCornerShape(20.dp),
+                color = if (uiState.isPremiumActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WorkspacePremium,
+                                contentDescription = t("Pro"),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = t("NurVakti Pro"),
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primary
+                                ) {
+                                    Text(
+                                        text = if (uiState.isPremiumActive) "PRO AKTİF" else "AYRICALIKLAR",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 9.sp
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = if (uiState.isPremiumActive)
+                                    "Tüm temalar, ezber stüdyosu ve widget'lar aktif"
+                                else
+                                    "Kâbe Kiswa teması, hatim stüdyosu & widget'ları açın",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
+                    }
+
+                    FilledTonalButton(
+                        onClick = onOpenPremium,
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = if (uiState.isPremiumActive) "Yönet" else "Yükselt",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+        }
+
+        // 3. Spiritual Stats Grid (Namaz, Zikir, Kur'an, Hatim)
+        item {
+            Text(
+                text = t("İbadet ve İlerleme Takibiniz"),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StatCard(
+                    title = t("Namaz"),
+                    value = "${uiState.completedPrayersToday.size} / 5",
+                    subtitle = t("Bugün kılınan"),
+                    icon = Icons.Default.AccessTime,
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = t("Zikir"),
+                    value = "${uiState.todayDhikrCompletedTotal}",
+                    subtitle = t("Bugünkü toplam"),
+                    icon = Icons.Default.Fingerprint,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StatCard(
+                    title = t("Kur'an"),
+                    value = "${uiState.pagesReadToday} / ${uiState.dailyPageGoal}",
+                    subtitle = t("Bugün okunan sayfa"),
+                    icon = Icons.Default.MenuBook,
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = t("Seri"),
+                    value = "${uiState.prayerStreak}",
+                    subtitle = t("Gün kesintisiz namaz"),
+                    icon = Icons.Default.Star,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        // 4. Settings Items
+        item {
+            Text(
+                text = t("Uygulama ve Tercihler"),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Auto GPS Location
+            SettingsRow(
+                title = t("Ezan, Bildirim ve Uygulama Ayarları"),
+                subtitle = t("Vakit bildirimleri, ezan sesi, tema, dil, yedekleme"),
+                icon = Icons.Default.Settings,
+                onClick = onOpenSettings
+            )
+
+            SettingsRow(
+                title = t("Namaz Takibi ve İstatistikler"),
+                subtitle = t("Haftalık grafik, seri ve okuma takibi"),
+                icon = Icons.Default.TaskAlt,
+                onClick = { onNavigate(AppScreen.PRAYER_TRACKER) }
+            )
+
+            SettingsRow(
+                title = t("Konumumu Otomatik Bul (GPS)"),
+                subtitle = if (uiState.isLocating) "GPS konumu aranıyor..." else "Mevcut: ${uiState.selectedCity.displayName}",
+                icon = Icons.Default.MyLocation,
+                onClick = onAutoDetectLocation
+            )
+
+            // City Selection
+            SettingsRow(
+                title = t("Şehir ve Konum Listesi"),
+                subtitle = "${uiState.selectedCity.displayName} (${uiState.selectedCity.country})",
+                icon = Icons.Default.LocationOn,
+                onClick = onOpenCityPicker
+            )
+
+            // Theme Toggle
+            SettingsRow(
+                title = t("Görünüm Teması"),
+                subtitle = when (uiState.themeMode) { "light" -> t("Fildişi (Açık)"); "system" -> t("Sistem"); "kiswa" -> t("Kâbe Örtüsü"); else -> t("Gece Zümrüdü") },
+                icon = if (uiState.themeMode == "light") Icons.Default.LightMode else Icons.Default.DarkMode,
+                onClick = onToggleTheme
+            )
+
+            // Kaza Namazı Tracker shortcut
+            SettingsRow(
+                title = t("Kaza Namazı Defteri"),
+                subtitle = t("Geçmiş namaz borçlarınızı hesaplayın ve kaydedin"),
+                icon = Icons.Default.FormatListNumbered,
+                onClick = { onNavigate(AppScreen.KAZA_NAMAZ) }
+            )
+
+            // Quran Settings shortcut
+            SettingsRow(
+                title = t("Kur'an Okuma Ayarları"),
+                subtitle = "Yazı boyutları: Arapça ${uiState.arabicFontSize}sp, Meal ${uiState.mealFontSize}sp",
+                icon = Icons.Default.FormatSize,
+                onClick = { onNavigate(AppScreen.QURAN) }
+            )
+
+            // Verified Sources & Licenses
+            SettingsRow(
+                title = t("Dini Kaynaklar ve Lisanslar"),
+                subtitle = t("Diyanet İşleri Başkanlığı, Tanzil, Kur'an Ansiklopedisi, EveryAyah"),
+                icon = Icons.Default.Verified,
+                onClick = { showSourcesDialog = true }
+            )
+
+            // Privacy & Data
+            SettingsRow(
+                title = t("Gizlilik ve Güvenlik"),
+                subtitle = t("Verileriniz yalnızca telefonunuzda saklanır"),
+                icon = Icons.Default.Security,
+                onClick = { showPrivacyDialog = true }
+            )
+
+            // Version info
+            SettingsRow(
+                title = t("NurVakti Hakkında"),
+                subtitle = "NurVakti ${com.eavisionlabs.nurvakti.BuildConfig.VERSION_NAME} • EA Vision Labs",
+                icon = Icons.Default.Info,
+                onClick = {
+                    Toast.makeText(context, "NurVakti: Premium Kur'an-ı Kerim ve İslami Yaşam", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    if (showSourcesDialog) {
+        AlertDialog(
+            onDismissRequest = { showSourcesDialog = false },
+            title = {
+                Text(
+                    t("Dini Kaynaklar"),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = t("1. Kur'an-ı Kerim metni: Kur'an Ansiklopedisi (quranenc.com) Osmanlı hattı; sayfa ve cüz düzeni Medine Mushafı.") + "\n\n" +
+                               t("2. Türkçe meal: Diyanet İşleri Başkanlığı (tanzil.net). İngilizce: Saheeh International.") + "\n\n" +
+                               t("3. Namaz vakitleri: Diyanet İşleri Başkanlığı yöntemi (İmsak 18°, Yatsı 17°, asr-ı evvel ve temkinler) cihazda hesaplanır.") + "\n\n" +
+                               t("4. Sesli tilavet: mp3quran.net (sure) ve everyayah.com (ayet ayet).") + "\n\n" +
+                               t("5. Hadisler: Buhârî, Müslim, Tirmizî, Ebû Dâvûd ve diğer kaynaklar; her hadisin kaynağı yanında belirtilmiştir.") + "\n\n" +
+                               t("6. Kur'an yazı tipi: Amiri Quran (SIL Open Font License)."),
+                        style = MaterialTheme.typography.bodySmall,
+                        lineHeight = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSourcesDialog = false }) {
+                    Text(t("Anladım"), color = GoldChampagne)
+                }
+            }
+        )
+    }
+
+    if (showPrivacyDialog) {
+        val policyUrl = com.eavisionlabs.nurvakti.MainActivity.PRIVACY_URL
+        AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        tint = GoldChampagne
+                    )
+                    Text(
+                        t("Gizlilik Politikası"),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 380.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = t("NurVakti (") + "com.aistudio.nurvakti.app" + ") kullanıcı mahremiyetini ve ibadet gizliliğini temel ilke kabul eder:",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = GoldChampagne
+                    )
+                    Text(
+                        text = t("1. Konum Bilgisi: Yalnızca namaz vakitlerinin ve kıble açısının cihaz üzerinde yerel hesaplanması için kullanılır. Hiçbir sunucuya gönderilmez.\n\n") +
+                               "2. Sensörler: Pusula verisi ekranda kıbleyi göstermek için anlık okunur, asla kaydedilmez.\n\n" +
+                               "3. Cihaz İçi Depolama: Hatim, zikir, kaza ve favori kayıtlarınız sadece telefonunuzda saklanır.\n\n" +
+                               "4. Reklamsız & Güvenli: Kullanıcıyı takip eden ticari kodlar veya üçüncü taraf reklam modülleri içermez.\n\n" +
+                               "5. Geliştirici & Destek: eakdemir3@gmail.com\n" +
+                               "GitHub: github.com/eakdemir3-prog",
+                        style = MaterialTheme.typography.bodySmall,
+                        lineHeight = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(policyUrl))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Tarayıcı açılamadı: $policyUrl", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                ) {
+                    Text(t("Web'de Aç (GitHub)"), color = GoldChampagne)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                        val clip = ClipData.newPlainText("NurVakti Gizlilik Politikası", policyUrl)
+                        clipboard?.setPrimaryClip(clip)
+                        Toast.makeText(context, "Gizlilik politikası bağlantısı kopyalandı", Toast.LENGTH_SHORT).show()
+                    }
+                ) {
+                    Text(t("Linki Kopyala"), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun StatCard(
+    title: String,
+    value: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.clip(RoundedCornerShape(18.dp)),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    maxLines = 1
+                )
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                value,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                ),
+                maxLines = 1
+            )
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 10.sp
+                ),
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsRow(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = GoldChampagne, modifier = Modifier.size(20.dp))
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    maxLines = 1
+                )
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    maxLines = 1
+                )
+            }
+            Icon(
+                Icons.Default.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NurVakti</string>
+    <string name="widget_name">NurVakti – Sıradaki Vakit</string>
+    <string name="widget_description">Sıradaki namaz vaktine kalan süre ve günün vakitleri</string>
 </resources>

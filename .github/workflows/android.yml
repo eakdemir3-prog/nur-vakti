@@ -1,0 +1,69 @@
+name: Android Build
+
+on:
+  push:
+    branches: [main, nurvakti-v2]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Debug keystore
+        run: |
+          keytool -genkeypair -keystore debug.keystore -alias androiddebugkey \
+            -storepass android -keypass android -keyalg RSA -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Build test APK + release AAB + unit tests
+        run: |
+          set -o pipefail
+          ./gradlew --no-configuration-cache assembleDebug bundleRelease testDebugUnitTest --continue 2>&1 | tee build.log
+
+      - name: Publish failure log
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "run ${{ github.run_number }}" > errors.txt
+          grep -E "^e: |error:|FAILED|What went wrong|AssertionError" -A3 build.log >> errors.txt || true
+          for f in $(find app/build/test-results -name "*.xml" 2>/dev/null); do cat "$f" >> errors.txt; done
+          gzip -k build.log
+          gh release create "log-${{ github.run_number }}" errors.txt build.log.gz \
+            --target "${{ github.sha }}" --prerelease --title "CI log #${{ github.run_number }}" --notes "failed build log" \
+          || { git config user.name ci; git config user.email ci@users.noreply.github.com; git checkout -b ci-log-${{ github.run_number }}; git add -f errors.txt; git commit -m log; git push origin ci-log-${{ github.run_number }}; }
+
+      - name: Collect outputs
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/NurVakti-test.apk
+          cp app/build/outputs/bundle/release/app-release.aab out/NurVakti-unsigned.aab
+          if [ -d app/build/screenshots ]; then (cd app/build && zip -qr ../../out/screenshots.zip screenshots); fi
+          ls -la out
+
+      - name: Publish build to a pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" out/* \
+            --target "${{ github.sha }}" --prerelease \
+            --title "NurVakti test build #${{ github.run_number }}" \
+            --notes "Otomatik derleme (${GITHUB_REF_NAME} @ ${GITHUB_SHA::7})"
