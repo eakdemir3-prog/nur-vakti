@@ -87,6 +87,7 @@ fun RamazanHatimScreen(
                         ) {
                             Text(
                                 text = t("Bugünün İmsak ve İftar Vakitleri"),
+                                modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = GoldLight

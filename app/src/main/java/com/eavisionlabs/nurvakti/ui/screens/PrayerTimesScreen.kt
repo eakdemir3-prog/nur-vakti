@@ -65,43 +65,15 @@ fun PrayerTimesScreen(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "${schedule?.gregorianDateFormatted ?: ""} • ${schedule?.hijriDateFormatted ?: ""}",
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        text = "${schedule?.gregorianDateFormatted ?: ""}\n${schedule?.hijriDateFormatted ?: ""}",
+                        style = MaterialTheme.typography.labelMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Surface(
-                    onClick = onOpenCityPicker,
-                    shape = RoundedCornerShape(18.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = GoldChampagne,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = uiState.selectedCity.displayName,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
