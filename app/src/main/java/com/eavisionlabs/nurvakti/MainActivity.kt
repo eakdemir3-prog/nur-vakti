@@ -32,6 +32,10 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -54,7 +58,9 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+        val coldStart = savedInstanceState == null
         enableEdgeToEdge()
         handleIntent(intent)
 
@@ -67,7 +73,11 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides Density(density.density, density.fontScale * uiState.fontScale),
                     LocalLayoutDirection provides direction
                 ) {
-                    NurVaktiApp(activity = this, viewModel = viewModel, uiState = uiState)
+                    var showIntro by rememberSaveable { mutableStateOf(coldStart) }
+                    Box(Modifier.fillMaxSize()) {
+                        NurVaktiApp(activity = this@MainActivity, viewModel = viewModel, uiState = uiState)
+                        if (showIntro) IntroAnimation(onFinished = { showIntro = false })
+                    }
                 }
             }
         }

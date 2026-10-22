@@ -277,6 +277,7 @@ object StringsEn {
         "Namaz Takibi" to "Prayer tracker",
         "Namaz Takibi ve İstatistikler" to "Prayer tracker & stats",
         "Namaz Vakitleri" to "Prayer times",
+        "Namaz Vakitleri & Kur'an-ı Kerim" to "Prayer Times & Holy Quran",
         "Namaz Vakitlerini Takip Et" to "Follow prayer times",
         "Namaz vakitleri, ezan, Kur'an ve tüm temel özellikler her zaman ücretsizdir. Pro, ek araçlarla geliştirmemize destek olur." to "Prayer times, adhan, Quran and all core features are always free. Pro adds extra tools and supports development.",
         "Namaz vakti girdiğinde bildirim sesiyle uyarır" to "Alerts with a sound when prayer time begins",

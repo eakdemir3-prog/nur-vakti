@@ -277,6 +277,7 @@ object StringsAr {
         "Namaz Takibi" to "متابعة الصلاة",
         "Namaz Takibi ve İstatistikler" to "متابعة الصلاة والإحصاءات",
         "Namaz Vakitleri" to "مواقيت الصلاة",
+        "Namaz Vakitleri & Kur'an-ı Kerim" to "مواقيت الصلاة والقرآن الكريم",
         "Namaz Vakitlerini Takip Et" to "تابع مواقيت الصلاة",
         "Namaz vakitleri, ezan, Kur'an ve tüm temel özellikler her zaman ücretsizdir. Pro, ek araçlarla geliştirmemize destek olur." to "المواقيت والأذان والقرآن وكل الميزات الأساسية مجانية دائماً. Pro يضيف أدوات ويدعم التطوير.",
         "Namaz vakti girdiğinde bildirim sesiyle uyarır" to "ينبّه بصوت عند دخول الوقت",

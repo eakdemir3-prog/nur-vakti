@@ -44,7 +44,7 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:launchMode="singleTop"
             android:label="@string/app_name"
-            android:theme="@style/Theme.MyApplication">
+            android:theme="@style/Theme.NurVakti.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

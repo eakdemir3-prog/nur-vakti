@@ -108,4 +108,17 @@ class ScreenshotTest {
     @Test fun ramazan() { val s = state(); shot("10_ramazan_light", "light") { RamazanHatimScreen(s, {}, {}, {}) } }
     @Test fun explore() { val s = state(); shot("11_explore") { ExploreScreen(s, {}) } }
     @Test fun tasbih_light() { val s = state(); shot("12_tasbih_light", "light") { TasbihScreen(s, {}, {}, {}, {}, {}, {}, { _, _, _, _ -> }) } }
+
+    @Test fun intro_frames() {
+        compose.mainClock.autoAdvance = false
+        compose.setContent { com.eavisionlabs.nurvakti.ui.components.IntroAnimation(onFinished = {}) }
+        var last = 0L
+        for (ms in listOf(80L, 350L, 650L, 950L, 1300L, 1650L)) {
+            compose.mainClock.advanceTimeBy(ms - last); last = ms
+            val view = compose.activity.window.decorView
+            val bmp = Bitmap.createBitmap(view.width.coerceAtLeast(1), view.height.coerceAtLeast(1), Bitmap.Config.ARGB_8888)
+            view.draw(Canvas(bmp))
+            File("build/screenshots").apply { mkdirs() }.resolve("intro_%04d.png".format(ms)).outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        }
+    }
 }
