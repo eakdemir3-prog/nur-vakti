@@ -79,7 +79,7 @@ fun OnboardingScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.nurvakti_icon_1792354892507),
+                    painter = painterResource(id = R.drawable.nurvakti_logo),
                     contentDescription = t("NurVakti Logo"),
                     modifier = Modifier.size(60.dp).clip(CircleShape)
                 )
