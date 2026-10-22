@@ -19,6 +19,7 @@ import com.eavisionlabs.nurvakti.ui.UiState
 import com.eavisionlabs.nurvakti.ui.screens.*
 import com.eavisionlabs.nurvakti.ui.theme.MyApplicationTheme
 import org.junit.Rule
+import androidx.compose.foundation.layout.padding
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
