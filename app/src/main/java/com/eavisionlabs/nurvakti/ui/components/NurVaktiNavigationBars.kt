@@ -18,10 +18,18 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
+import com.eavisionlabs.nurvakti.R
 import com.eavisionlabs.nurvakti.model.City
 import com.eavisionlabs.nurvakti.ui.AppScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Üst çubuk: logo + şehir (tek satır, gerekirse kısaltılır) + Pro + Ayarlar.
+ * Büyük yazı boyutlarında da taşmaması için başlık yazısı yer kalmadığında gizlenir.
+ */
 @Composable
 fun NurVaktiTopBar(
     selectedCity: City,
@@ -30,61 +38,31 @@ fun NurVaktiTopBar(
     onOpenPremium: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    TopAppBar(
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 4.dp)
-            ) {
-                // Crescent & Star brand icon
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.NightlightRound,
-                        contentDescription = t("NurVakti Logo"),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Column {
-                    Text(
-                        text = t("NurVakti"),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            letterSpacing = 0.5.sp
-                        )
-                    )
-                    Text(
-                        text = t("İslami Yaşam & Kur'an"),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                }
-            }
-        },
-        actions = {
-            // City selector button
+    Surface(color = MaterialTheme.colorScheme.background, modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .height(60.dp)
+                .padding(start = 12.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(R.drawable.nurvakti_logo),
+                contentDescription = t("NurVakti Logo"),
+                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
+            )
+            Spacer(Modifier.width(10.dp))
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             Surface(
                 onClick = onCityClick,
                 shape = RoundedCornerShape(20.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
-                modifier = Modifier
-                    .padding(end = 4.dp)
-                    .testTag("topbar_city_button")
+                modifier = Modifier.testTag("topbar_city_button")
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -96,43 +74,30 @@ fun NurVaktiTopBar(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = selectedCity.displayName,
-                        style = MaterialTheme.typography.labelMedium.copy(
+                        style = MaterialTheme.typography.labelLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold
-                        )
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
-
-            // Dedicated Pro Purchase / Membership access in TopBar
-            IconButton(
-                onClick = onOpenPremium,
-                modifier = Modifier.testTag("topbar_pro_button")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.WorkspacePremium,
-                    contentDescription = t("NurVakti Pro"),
-                    tint = MaterialTheme.colorScheme.primary
-                )
             }
-
-            IconButton(
-                onClick = onSettingsClick,
-                modifier = Modifier.testTag("topbar_settings_button")
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Settings,
-                    contentDescription = t("Ayarlar"),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            IconButton(onClick = onOpenPremium, modifier = Modifier.testTag("topbar_pro_button")) {
+                Icon(Icons.Default.WorkspacePremium, contentDescription = t("NurVakti Pro"), tint = MaterialTheme.colorScheme.primary)
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.surface
-        ),
-        modifier = modifier
-    )
+            IconButton(onClick = onSettingsClick, modifier = Modifier.testTag("topbar_settings_button")) {
+                Icon(Icons.Outlined.Settings, contentDescription = t("Ayarlar"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
 }
 
 @Composable
@@ -168,11 +133,19 @@ fun NurVaktiBottomNav(
                     )
                 },
                 label = {
+                    // Tek satır; büyük yazı boyutunda da kırılmaması için yazı kendini küçültür
+                    val base = MaterialTheme.typography.labelSmall
+                    val density = LocalDensity.current
+                    val size = (12f / density.fontScale.coerceAtLeast(1f) * 1.1f).coerceIn(9f, 12f)
                     Text(
                         text = t(label),
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        style = base.copy(
+                            fontSize = size.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        )
+                        ),
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(

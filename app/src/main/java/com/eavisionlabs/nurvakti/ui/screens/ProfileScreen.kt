@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.eavisionlabs.nurvakti.ui.AppScreen
@@ -106,7 +107,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(14.dp))
         }
 
-        // 2. NurVakti Pro Card (Premier Pro Satın Alma / Üyelik Ekranı)
+        // 2. NurVakti Pro kartı — dikey düzen, büyük yazıda da taşmaz
         item {
             Surface(
                 modifier = Modifier
@@ -118,83 +119,57 @@ fun ProfileScreen(
                 color = if (uiState.isPremiumActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
                 border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
+                                .size(44.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.WorkspacePremium,
-                                contentDescription = t("Pro"),
+                                contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(26.dp)
                             )
                         }
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = t("NurVakti Pro"),
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primary
-                                ) {
-                                    Text(
-                                        text = if (uiState.isPremiumActive) "PRO AKTİF" else "AYRICALIKLAR",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            color = MaterialTheme.colorScheme.onPrimary,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 9.sp
-                                        ),
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
-                                }
-                            }
-                            Text(
-                                text = if (uiState.isPremiumActive)
-                                    "Tüm temalar, ezber stüdyosu ve widget'lar aktif"
-                                else
-                                    "Kâbe Kiswa teması, hatim stüdyosu & widget'ları açın",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = t("NurVakti Pro"),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (uiState.isPremiumActive) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = t("Aktif"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
-
-                    FilledTonalButton(
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (uiState.isPremiumActive) t("Pro ayrıcalıklarınız açık")
+                        else t("Kâbe Örtüsü teması, hıfz modu ve aylık analizler"),
+                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
                         onClick = onOpenPremium,
-                        colors = ButtonDefaults.filledTonalButtonColors(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = if (uiState.isPremiumActive) "Yönet" else "Yükselt",
+                            text = if (uiState.isPremiumActive) t("Yönet") else t("Pro'yu incele"),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
+                            maxLines = 1
                         )
                     }
                 }

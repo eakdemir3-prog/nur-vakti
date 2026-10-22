@@ -65,10 +65,14 @@ class ScreenshotTest {
         )
     }
 
-    private fun shot(name: String, theme: String = "dark", rtl: Boolean = false, content: @Composable () -> Unit) {
+    private fun shot(name: String, theme: String = "dark", rtl: Boolean = false, fontScale: Float = 1f, content: @Composable () -> Unit) {
         compose.setContent {
             MyApplicationTheme(themeMode = theme) {
-                CompositionLocalProvider(LocalLayoutDirection provides if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr) {
+                val d = androidx.compose.ui.platform.LocalDensity.current
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+                    androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(d.density, fontScale)
+                ) {
                     content()
                 }
             }
@@ -121,4 +125,30 @@ class ScreenshotTest {
             File("build/screenshots").apply { mkdirs() }.resolve("intro_%04d.png".format(ms)).outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
         }
     }
+
+    @Composable
+    private fun withBars(s: UiState, screen: com.eavisionlabs.nurvakti.ui.AppScreen, body: @Composable () -> Unit) {
+        androidx.compose.material3.Scaffold(
+            topBar = { com.eavisionlabs.nurvakti.ui.components.NurVaktiTopBar(s.selectedCity, {}, {}, {}) },
+            bottomBar = { com.eavisionlabs.nurvakti.ui.components.NurVaktiBottomNav(screen, {}) }
+        ) { p -> androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.padding(p)) { body() } }
+    }
+
+    private fun district() = state().let { st ->
+        val c = com.eavisionlabs.nurvakti.model.City("gaziantep_sehitkamil", "Şehitkamil", "Türkiye", 37.06, 37.38, province = "Gaziantep")
+        st.copy(selectedCity = c, prayerSchedule = PrayerCalculationEngine.calculateDailySchedule(c))
+    }
+
+    @Test fun big_home() { val s = district(); shot("20_big_home", fontScale = 1.4f) { withBars(s, com.eavisionlabs.nurvakti.ui.AppScreen.HOME) { HomeScreen(s, {}, {}, {}) } } }
+    @Test fun big_profile() { val s = district(); shot("21_big_profile", fontScale = 1.4f) { withBars(s, com.eavisionlabs.nurvakti.ui.AppScreen.PROFILE) { ProfileScreen(s, {}, {}, {}) } } }
+    @Test fun big_times() { val s = district(); shot("22_big_times", fontScale = 1.4f) { withBars(s, com.eavisionlabs.nurvakti.ui.AppScreen.PRAYER_TIMES) { PrayerTimesScreen(s, {}, {}) } } }
+    @Test fun big_quran() { val s = district(); shot("23_big_quran", fontScale = 1.4f) { withBars(s, com.eavisionlabs.nurvakti.ui.AppScreen.QURAN) { QuranScreen(s, {}, {}, {}, {}) } } }
+    @Test fun big_explore() { val s = district(); shot("24_big_explore", fontScale = 1.4f) { withBars(s, com.eavisionlabs.nurvakti.ui.AppScreen.EXPLORE) { ExploreScreen(s, {}) } } }
+    @Test fun big_tracker() { val s = district(); shot("25_big_tracker", fontScale = 1.4f) { PrayerTrackerScreen(s, {}, {}, {}) } }
+    @Test fun big_premium() { val s = district(); shot("26_big_premium", fontScale = 1.4f) { PremiumScreen(s, {}, {}, {}) } }
+    @Test fun big_tasbih() { val s = district(); shot("27_big_tasbih", fontScale = 1.4f) { TasbihScreen(s, {}, {}, {}, {}, {}, {}, { _, _, _, _ -> }) } }
+    @Test fun big_ramazan() { val s = district(); shot("28_big_ramazan", fontScale = 1.4f) { RamazanHatimScreen(s, {}, {}, {}) } }
+    @Test fun big_kaza() { val s = district(); shot("29_big_kaza", fontScale = 1.4f) { KazaNamazScreen(s, {}, { _, _ -> }, {}) } }
+    @Test fun big_zakat() { val s = district(); shot("30_big_zakat", fontScale = 1.4f) { ZakatCalculatorScreen(s, {}, { _, _, _, _, _ -> }) } }
+    @Test fun big_qibla() { val s = district(); shot("31_big_qibla", fontScale = 1.4f) { QiblaScreen(s, {}) } }
 }
