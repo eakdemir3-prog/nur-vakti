@@ -136,7 +136,8 @@ fun NurVaktiBottomNav(
                     // Tek satır; büyük yazı boyutunda da kırılmaması için yazı kendini küçültür
                     val base = MaterialTheme.typography.labelSmall
                     val density = LocalDensity.current
-                    val size = (12f / density.fontScale.coerceAtLeast(1f) * 1.1f).coerceIn(9f, 12f)
+                    // Ekrandaki boyut yazı ölçeğinden bağımsız olarak ~11.5dp kalır
+                    val size = 11.5f / density.fontScale.coerceAtLeast(1f)
                     Text(
                         text = t(label),
                         style = base.copy(

@@ -13,7 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +53,11 @@ fun HomeScreen(
     val schedule = uiState.prayerSchedule
     val todayEvent = uiState.religiousDays.firstOrNull { it.daysRemaining == 0 }
     val isFriday = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
+    var greetingSheet by remember { mutableStateOf<Pair<String, List<String>>?>(null) }
+
+    greetingSheet?.let { (title, list) ->
+        GreetingMessagesSheet(title = title, messages = list, onShare = onShare, onDismiss = { greetingSheet = null })
+    }
 
     LazyColumn(
         modifier = modifier
@@ -342,14 +347,17 @@ fun HomeScreen(
             }
         }
 
-        // 2c. Cuma / dini gün tebriği
+        // 2c. Cuma / dini gün tebriği — dokununca mesaj listesi açılır
         if (isFriday || todayEvent != null) {
             item {
                 Spacer(modifier = Modifier.height(12.dp))
                 val title = todayEvent?.let { t(it.title) } ?: t("Hayırlı Cumalar")
-                val greetings = com.eavisionlabs.nurvakti.data.DailyContent.greetings(todayEvent?.title)
+                val greetings = remember(todayEvent?.id) {
+                    com.eavisionlabs.nurvakti.data.DailyContent.greetings(todayEvent?.id, todayEvent?.title)
+                }
                 Surface(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    onClick = { greetingSheet = title to greetings },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("greeting_card"),
                     shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     border = androidx.compose.foundation.BorderStroke(1.dp, GoldChampagne.copy(alpha = 0.4f))
@@ -358,19 +366,24 @@ fun HomeScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.NightsStay, contentDescription = null, tint = GoldChampagne)
                             Spacer(Modifier.width(8.dp))
-                            Text(title, fontWeight = FontWeight.Bold, color = GoldLight, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                title, fontWeight = FontWeight.Bold, color = GoldLight,
+                                style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f)
+                            )
                         }
                         Spacer(Modifier.height(6.dp))
                         Text(greetings.first(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                        Spacer(Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            greetings.forEachIndexed { i, g ->
-                                AssistChip(
-                                    onClick = { onShare("$g\n\n— NurVakti") },
-                                    label = { Text(String.format(t("Mesaj %d"), i + 1)) },
-                                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                                )
-                            }
+                        Spacer(Modifier.height(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Forum, contentDescription = null, tint = GoldChampagne, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                String.format(t("%d tebrik mesajı • Paylaşmak için dokunun"), greetings.size),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = GoldChampagne,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = GoldChampagne)
                         }
                     }
                 }
@@ -747,3 +760,72 @@ private data class QuickActionItem(
     val accentColor: Color,
     val targetScreen: AppScreen
 )
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GreetingMessagesSheet(
+    title: String,
+    messages: List<String>,
+    onShare: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surface) {
+        GreetingMessagesList(title, messages, onShare)
+    }
+}
+
+/** Tebrik mesajları listesi (her mesajda paylaş ve kopyala) */
+@Composable
+internal fun GreetingMessagesList(title: String, messages: List<String>, onShare: (String) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+        Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = GoldChampagne,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Text(
+                t("Bir mesajı paylaşın ya da kopyalayın"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+            )
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 620.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(messages) { msg ->
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(Modifier.padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                msg,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                IconButton(onClick = { onShare("$msg\n\n— NurVakti") }) {
+                                    Icon(Icons.Default.Share, contentDescription = t("Paylaş"), tint = GoldChampagne)
+                                }
+                                IconButton(onClick = {
+                                    val cb = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    cb.setPrimaryClip(android.content.ClipData.newPlainText("NurVakti", msg))
+                                    android.widget.Toast.makeText(context, t("Mesaj kopyalandı"), android.widget.Toast.LENGTH_SHORT).show()
+                                }) {
+                                    Icon(Icons.Default.ContentCopy, contentDescription = t("Kopyala"), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+                item { Spacer(Modifier.height(12.dp)) }
+            }
+        }
+}

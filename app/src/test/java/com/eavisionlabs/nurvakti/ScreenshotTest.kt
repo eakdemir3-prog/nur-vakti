@@ -152,4 +152,12 @@ class ScreenshotTest {
     @Test fun big_kaza() { val s = district(); shot("29_big_kaza", fontScale = 1.4f) { KazaNamazScreen(s, {}, { _, _ -> }, {}) } }
     @Test fun big_zakat() { val s = district(); shot("30_big_zakat", fontScale = 1.4f) { ZakatCalculatorScreen(s, {}, { _, _, _, _, _ -> }) } }
     @Test fun big_qibla() { val s = district(); shot("31_big_qibla", fontScale = 1.4f) { QiblaScreen(s, {}) } }
+
+    @Test fun big_home_friday() { val s = district(); shot("32_big_home_greeting", fontScale = 1.6f) { withBars(s, com.eavisionlabs.nurvakti.ui.AppScreen.HOME) { HomeScreen(s, {}, {}, {}) } } }
+    @Test fun greeting_list() {
+        val msgs = com.eavisionlabs.nurvakti.data.DailyContent.greetings(null, null)
+        shot("33_greeting_list", fontScale = 1.3f) {
+            androidx.compose.material3.Surface { GreetingMessagesList("Hayırlı Cumalar", msgs) {} }
+        }
+    }
 }

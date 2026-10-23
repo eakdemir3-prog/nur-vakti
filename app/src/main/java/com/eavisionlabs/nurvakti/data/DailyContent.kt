@@ -92,17 +92,124 @@ object DailyContent {
         return if (I18n.language == "tr") "${h.text} (${h.source})" else "Jumu'ah Mubarak!"
     }
 
-    /** Paylaşılabilir tebrik mesajları (cuma ve dini günler). */
-    fun greetings(eventTitle: String?): List<String> {
-        val title = eventTitle ?: "Cuma"
-        return if (eventTitle == null) listOf(
-            "Hayırlı Cumalar! Rabbim dualarımızı kabul, kalplerimizi huzurla doldursun.",
-            "Cumanız mübarek olsun. Bu mübarek günde dualarınızın kabul olmasını dilerim.",
-            "Rabbim bu Cuma'nın hürmetine gönlünüzü ferahlatsın, hayırlı işlerinizi bereketli kılsın. Hayırlı Cumalar."
-        ) else listOf(
-            "$title mübarek olsun. Rabbim dualarımızı kabul eylesin.",
-            "$title hayırlara vesile olsun; gönlünüz huzur, haneniz bereketle dolsun.",
-            "Bu mübarek gün ve gecenin hürmetine Rabbim bizleri affına mazhar eylesin. $title mübarek olsun."
-        )
+    /** Paylaşılabilir tebrik mesajları (cuma ve dini günler). [eventId] null ise Cuma mesajları döner. */
+    fun greetings(eventId: String?, eventTitle: String?): List<String> {
+        val title = eventTitle ?: "Kandil"
+        return when (eventId) {
+            null -> fridayGreetings
+            "ramazan_baslangic" -> ramadanGreetings
+            "ramazan_bayrami" -> fitrGreetings
+            "kurban_bayrami" -> adhaGreetings
+            "arefe_ramazan", "arefe_kurban" -> arefeGreetings(title)
+            "hicri_yilbasi" -> hijriNewYearGreetings
+            "asure" -> ashuraGreetings
+            "kadir" -> qadrGreetings + kandilGreetings(title)
+            else -> kandilGreetings(title)
+        }
     }
+
+    private val fridayGreetings = listOf(
+        "Hayırlı Cumalar! Rabbim dualarımızı kabul, kalplerimizi huzurla doldursun.",
+        "Cumanız mübarek olsun. Bu mübarek günde dualarınızın kabul olmasını dilerim.",
+        "Rabbim bu Cuma'nın hürmetine gönlünüzü ferahlatsın, hayırlı işlerinizi bereketli kılsın. Hayırlı Cumalar.",
+        "Cuma'nın bereketi evinize, huzuru gönlünüze, rahmeti üzerinize olsun. Hayırlı Cumalar.",
+        "Dualarda buluşmak dileğiyle… Rabbim bizi sevdiği ve razı olduğu kullarından eylesin. Cumanız mübarek olsun.",
+        "Bugün Cuma; kalplerin yumuşadığı, duaların semaya yükseldiği gün. Dualarınızda bizi de unutmayın. Hayırlı Cumalar.",
+        "Rabbim sağlık, huzur ve bereket versin; yüzünüzü güldürsün, gönlünüzü nurlandırsın. Hayırlı Cumalar.",
+        "Cuma'nın nuru üzerinize, sevdiklerinize ve tüm ümmete olsun. Hayırlı Cumalar.",
+        "Allah'ım; kalbimize iman, evimize huzur, rızkımıza bereket, ömrümüze hayır ver. Âmin. Hayırlı Cumalar.",
+        "Bir dua da sizin için… Rabbim tüm dertlerinize derman, sıkıntılarınıza ferahlık versin. Cumanız mübarek olsun.",
+        "Haftanın en güzel günü Cuma, en güzel sözü dua, en güzel hediyesi salavat. Hayırlı Cumalar.",
+        "Allah'ım! Bizi affet, bize merhamet et, bizi hidayetinden ayırma. Hayırlı Cumalar.",
+        "Bugün bol bol salavat getirelim, dualarımızı eksik etmeyelim. Cumanız mübarek, gönlünüz huzurlu olsun.",
+        "Rabbim bu mübarek günde gönlünüzden geçen tüm hayırlı dileklerinizi kabul eylesin. Hayırlı Cumalar.",
+        "Cuma'nın rahmeti yağmur gibi yağsın; kalbinize huzur, evinize bereket, ömrünüze hayır getirsin.",
+        "Sevdiklerinizle birlikte sağlıklı, huzurlu ve bereketli nice Cumalara… Hayırlı Cumalar.",
+        "Allah'ım! Bizi Cuma'nın feyzinden, rahmetinden ve mağfiretinden mahrum bırakma. Âmin.",
+        "Gönüller bir, dualar bir olsun. Rabbim kardeşliğimizi daim eylesin. Hayırlı Cumalar.",
+        "Bugün Cuma; affın, rahmetin ve bereketin günü. Rabbim hepimizi affetsin. Hayırlı Cumalar.",
+        "Kabul olunmuş dualar, huzurlu kalpler ve bereketli bir hafta dileğiyle… Hayırlı Cumalar."
+    )
+
+    private fun kandilGreetings(title: String) = listOf(
+        "$title mübarek olsun. Rabbim dualarımızı kabul eylesin.",
+        "$title hayırlara vesile olsun; gönlünüz huzur, haneniz bereketle dolsun.",
+        "Bu mübarek gecenin hürmetine Rabbim bizleri affına mazhar eylesin. $title mübarek olsun.",
+        "$title kutlu olsun. Bu gece edilen dualar kabul, yapılan ibadetler makbul olsun.",
+        "Rabbim bu mübarek gecede gönlümüzü nurlandırsın, günahlarımızı affetsin. $title mübarek olsun.",
+        "Kandilin nuru evinize, huzuru gönlünüze, bereketi sofranıza olsun. $title mübarek olsun.",
+        "Bu gece dualarda buluşalım; Rabbim tüm ümmete rahmet eylesin. $title mübarek olsun.",
+        "$title sevdiklerinizle birlikte sağlık, huzur ve bereket getirsin.",
+        "Allah'ım! Bu mübarek gecenin hürmetine bizi bağışla, bize merhamet et. Âmin. $title mübarek olsun.",
+        "Gönüllerin Allah'a yöneldiği bu mübarek gecede sizi de dualarıma ekledim. $title mübarek olsun.",
+        "Rabbim bu kutlu gecede kapınızı rahmetiyle, evinizi huzurla, kalbinizi imanla doldursun. $title mübarek olsun.",
+        "Dualarınızda bizi de unutmayın. $title hayırlara vesile olsun."
+    )
+
+    private val qadrGreetings = listOf(
+        "Bin aydan hayırlı Kadir Gecesi'nin bereketi üzerinize olsun. Kadir Geceniz mübarek olsun.",
+        "Allah'ım! Sen affedicisin, affı seversin; bizi de affet. Kadir Geceniz mübarek olsun.",
+        "Kur'an'ın indiği bu kutlu gecede dualarınız kabul olsun. Kadir Geceniz mübarek olsun."
+    )
+
+    private val ramadanGreetings = listOf(
+        "On bir ayın sultanı Ramazan-ı Şerif'e kavuşmanın sevinciyle… Hayırlı Ramazanlar!",
+        "Ramazan'ın rahmeti, bereketi ve mağfireti üzerinize olsun. Hayırlı Ramazanlar.",
+        "Oruçlarınız kabul, dualarınız makbul, sofralarınız bereketli olsun. Hayırlı Ramazanlar.",
+        "Rabbim bu Ramazan'ı hepimiz için af, huzur ve bereket vesilesi eylesin. Hayırlı Ramazanlar.",
+        "Sahurlarınız bereketli, iftarlarınız huzurlu, ibadetleriniz makbul olsun. Hayırlı Ramazanlar.",
+        "Ramazan'ın nuru gönlünüzü, bereketi sofranızı, rahmeti evinizi doldursun.",
+        "Rabbim bizi Ramazan'ın hakkını veren kullarından eylesin. Hayırlı Ramazanlar.",
+        "Paylaşmanın, merhametin ve kardeşliğin ayı Ramazan hepimize hayırlı olsun."
+    )
+
+    private val fitrGreetings = listOf(
+        "Ramazan Bayramınız mübarek olsun! Nice sağlıklı, huzurlu ve bereketli bayramlara.",
+        "Oruçlarınızın kabul, bayramınızın mübarek olması dileğiyle… İyi bayramlar!",
+        "Bayramın sevinci evinize, huzuru gönlünüze, bereketi sofranıza dolsun. Bayramınız mübarek olsun.",
+        "Rabbim bu bayramı küslüklerin bittiği, gönüllerin birleştiği bir bayram eylesin. İyi bayramlar.",
+        "Sevdiklerinizle birlikte nice güzel bayramlara… Ramazan Bayramınız kutlu olsun.",
+        "Bir ay boyunca tutulan oruçların, edilen duaların kabulü dileğiyle; bayramınız mübarek olsun.",
+        "Bayramınız mübarek, yüzünüz güleç, gönlünüz huzurlu olsun.",
+        "Büyüklerin ellerinden, küçüklerin gözlerinden öperim. Ramazan Bayramınız mübarek olsun.",
+        "Rabbim bayramın neşesini hiç eksik etmesin. Nice bayramlara!",
+        "Bayram sabahının bereketi ve sevinci tüm sevdiklerinizle olsun. İyi bayramlar."
+    )
+
+    private val adhaGreetings = listOf(
+        "Kurban Bayramınız mübarek olsun! Kurbanlarınız kabul, dualarınız makbul olsun.",
+        "Teslimiyetin ve paylaşmanın bayramı Kurban Bayramı hepimize hayırlı olsun.",
+        "Rabbim kurbanlarınızı kabul, bayramınızı mübarek eylesin. Nice bayramlara!",
+        "Bayramın bereketi evinize, sevinci gönlünüze dolsun. Kurban Bayramınız kutlu olsun.",
+        "Hz. İbrahim'in teslimiyeti, Hz. İsmail'in sabrı hepimize örnek olsun. Bayramınız mübarek olsun.",
+        "Paylaştıkça çoğalan bir bayram dileğiyle… Kurban Bayramınız mübarek olsun.",
+        "Büyüklerin ellerinden, küçüklerin gözlerinden öperim. Kurban Bayramınız mübarek olsun.",
+        "Sevdiklerinizle birlikte sağlıklı ve huzurlu nice bayramlara. İyi bayramlar!",
+        "Rabbim gönüllerimizi birleştirsin, kardeşliğimizi daim eylesin. Bayramınız mübarek olsun.",
+        "Kurbanınız kabul, bayramınız mübarek, sofranız bereketli olsun."
+    )
+
+    private fun arefeGreetings(title: String) = listOf(
+        "Hayırlı arefeler! Rabbim dualarımızı kabul eylesin.",
+        "Arefe gününün bereketi ve rahmeti üzerinize olsun. Hayırlı arefeler.",
+        "Bayrama kavuşmanın sevinciyle… Hayırlı arefeler, şimdiden iyi bayramlar.",
+        "Rabbim bu mübarek arefe gününde gönlünüzdeki tüm hayırlı dilekleri kabul eylesin.",
+        "$title hayırlara vesile olsun. Dualarınızda bizi de unutmayın."
+    )
+
+    private val hijriNewYearGreetings = listOf(
+        "Hicri yeni yılınız mübarek olsun. Rabbim yeni yılı hayırlara vesile eylesin.",
+        "Hicretin bereketiyle yeni bir yıla… Rabbim yılımızı huzur ve bereketle doldursun.",
+        "Yeni hicri yılın hepimize sağlık, huzur ve hidayet getirmesi dileğiyle.",
+        "Rabbim geçen yılın hatalarını affetsin, yeni yılı rızasına uygun geçirmeyi nasip etsin.",
+        "Hicri yılbaşınız kutlu olsun. Nice hayırlı yıllara."
+    )
+
+    private val ashuraGreetings = listOf(
+        "Aşure gününüz mübarek olsun. Rabbim paylaşmanın bereketini evinizden eksik etmesin.",
+        "Bereketin, paylaşmanın ve sabrın günü Aşure hepimize hayırlı olsun.",
+        "Kerbela şehitlerini rahmetle anıyor, Aşure gününüzün mübarek olmasını diliyorum.",
+        "Aşurenin bereketi sofranıza, huzuru gönlünüze olsun.",
+        "Rabbim bu mübarek günün hürmetine dualarımızı kabul eylesin. Aşure gününüz mübarek olsun."
+    )
 }
