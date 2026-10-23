@@ -2,7 +2,7 @@
 
 Kur'an-ı Kerim, namaz vakitleri ve İslami yaşam uygulaması — EA Vision Labs.
 
-## Özellikler (v1.0.1)
+## Özellikler (v1.0.2)
 
 - **Namaz vakitleri** — Diyanet yöntemi (İmsak 18°, Yatsı 17°, asr-ı evvel, temkinler: Güneş −7, Öğle +5, İkindi +4, Akşam +7). Cihazda hesaplanır, yaz saati dahil. 81 il + ~920 ilçe + 60 yurt dışı şehir, GPS ile konum. Vakit başına dakika düzeltmesi ve hicri takvim düzeltmesi.
 - **Ezan ve bildirimler** — her vakit için Kapalı / Ezan / Sesli / Sessiz / Titreşim; vakitten önce hatırlatma (5–45 dk); telefon yeniden başlasa da çalışır. Ezan sesi olarak telefondan bir ses dosyası seçilebilir (yoksa alarm sesi).
