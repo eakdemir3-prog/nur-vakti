@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
  * NurVakti Pro satın alımları — RevenueCat.
  *
  * RevenueCat panelinde:
- *  - Entitlement: `pro`
+ *  - Entitlement: `nurvakti_pro`
  *  - Offering (current): paketler $rc_monthly, $rc_annual, $rc_lifetime
  * Google Play'de:
  *  - Abonelik `nurvakti_pro` (temel planlar: `aylik`, `yillik`)
@@ -46,7 +46,7 @@ class BillingManager(context: Context) {
         const val SUB_MONTHLY = "monthly"
         const val SUB_YEARLY = "yearly"
         const val LIFETIME = "lifetime"
-        const val ENTITLEMENT = "pro"
+        const val ENTITLEMENT = "nurvakti_pro"
 
         @Volatile private var configured = false
 
