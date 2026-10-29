@@ -1,6 +1,6 @@
 [versions]
 coreSplashscreen = "1.0.1"
-billing = "8.0.0"
+revenuecat = "10.15.1"
 agp = "9.1.1"
 coreKtx = "1.18.0"
 junit = "4.13.2"
@@ -44,7 +44,7 @@ googleid = "1.1.1"
 
 [libraries]
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
-billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+revenuecat-purchases = { group = "com.revenuecat.purchases", name = "purchases", version.ref = "revenuecat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

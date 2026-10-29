@@ -16,5 +16,6 @@ class NurVaktiApp : Application() {
         I18n.language = UserPreferences(this).language
         PrayerAlarmScheduler.applyEngineSettings(this)
         NotificationHelper.createChannels(this)
+        com.eavisionlabs.nurvakti.billing.BillingManager.configure(this)
     }
 }

@@ -21,6 +21,12 @@ android {
     versionName = "1.0.2"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    // RevenueCat herkese açık Android SDK anahtarı (goog_ ile başlar). Uygulamada bulunması güvenlidir.
+    val rcKey = (project.findProperty("revenuecatApiKey") as String?)
+      ?: System.getenv("REVENUECAT_API_KEY")
+      ?: ""
+    buildConfigField("String", "REVENUECAT_API_KEY", "\"$rcKey\"")
   }
 
   signingConfigs {
@@ -87,7 +93,7 @@ dependencies {
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.play.services.location)
-  implementation(libs.billing.ktx)
+  implementation(libs.revenuecat.purchases)
 
   testImplementation(libs.junit)
   testImplementation(libs.robolectric)
