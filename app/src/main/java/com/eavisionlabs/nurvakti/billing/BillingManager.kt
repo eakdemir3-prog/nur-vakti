@@ -107,7 +107,9 @@ class BillingManager(context: Context) {
     }
 
     private fun apply(info: CustomerInfo) {
-        val ent = info.entitlements[ENTITLEMENT]
+        // Önce "pro" yetkisine bakılır; adı farklı tanımlandıysa aktif herhangi bir yetki de Pro sayılır
+        val ent = info.entitlements[ENTITLEMENT]?.takeIf { it.isActive }
+            ?: info.entitlements.active.values.firstOrNull()
         val premium = ent?.isActive == true
         val productId = ent?.productIdentifier
         val plan = when {
