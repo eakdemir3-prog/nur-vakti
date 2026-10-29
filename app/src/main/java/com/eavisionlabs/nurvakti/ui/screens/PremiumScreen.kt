@@ -120,7 +120,10 @@ fun PremiumScreen(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         PlanCard(t("Yıllık"), price(BillingManager.SUB_YEARLY), t("yıllık"), t("EN AVANTAJLI"), selectedPlan == "yearly", { selectedPlan = "yearly" }, Modifier.weight(1f))
                         PlanCard(t("Aylık"), price(BillingManager.SUB_MONTHLY), t("aylık"), null, selectedPlan == "monthly", { selectedPlan = "monthly" }, Modifier.weight(1f))
-                        PlanCard(t("Ömür Boyu"), price(BillingManager.LIFETIME), t("tek seferlik"), null, selectedPlan == "lifetime", { selectedPlan = "lifetime" }, Modifier.weight(1f))
+                        // Ömür boyu yalnızca Play'de tanımlıysa (fiyat geldiyse) gösterilir
+                        if (prices.isEmpty() || prices.containsKey(BillingManager.LIFETIME)) {
+                            PlanCard(t("Ömür Boyu"), price(BillingManager.LIFETIME), t("tek seferlik"), null, selectedPlan == "lifetime", { selectedPlan = "lifetime" }, Modifier.weight(1f))
+                        }
                     }
                     Spacer(Modifier.height(16.dp))
                     Button(
