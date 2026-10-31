@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.nurvakti.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 4
-    versionName = "1.0.3"
+    versionCode = 5
+    versionName = "1.0.4"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -94,6 +94,8 @@ dependencies {
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.play.services.location)
   implementation(libs.revenuecat.purchases)
+  // play-services eski fragment 1.1.0 getiriyor; Play uyarısı için güncel sürüme zorlanır
+  implementation(libs.androidx.fragment)
 
   testImplementation(libs.junit)
   testImplementation(libs.robolectric)

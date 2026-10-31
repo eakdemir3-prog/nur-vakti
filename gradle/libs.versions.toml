@@ -1,6 +1,7 @@
 [versions]
 coreSplashscreen = "1.0.1"
 revenuecat = "10.15.1"
+fragment = "1.8.9"
 agp = "9.1.1"
 coreKtx = "1.18.0"
 junit = "4.13.2"
@@ -44,6 +45,7 @@ googleid = "1.1.1"
 
 [libraries]
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 revenuecat-purchases = { group = "com.revenuecat.purchases", name = "purchases", version.ref = "revenuecat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
