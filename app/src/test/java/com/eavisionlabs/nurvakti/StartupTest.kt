@@ -17,6 +17,12 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class StartupTest {
 
+    @org.junit.Before
+    fun grant() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        org.robolectric.Shadows.shadowOf(app).grantPermissions(android.Manifest.permission.INTERNET, android.Manifest.permission.ACCESS_NETWORK_STATE)
+    }
+
     @Test
     fun viewModelStarts() {
         val app = ApplicationProvider.getApplicationContext<Application>()

@@ -53,10 +53,12 @@ class BillingManager(context: Context) {
         /** Uygulama açılışında bir kez çağrılır. Anahtar yoksa satın alma devre dışı kalır. */
         fun configure(context: Context) {
             if (configured || BuildConfig.REVENUECAT_API_KEY.isBlank()) return
-            Purchases.configure(
-                PurchasesConfiguration.Builder(context.applicationContext, BuildConfig.REVENUECAT_API_KEY).build()
-            )
-            configured = true
+            // Mağaza bağlantısı kurulamazsa uygulama çökmesin; satın alma devre dışı kalır
+            configured = runCatching {
+                Purchases.configure(
+                    PurchasesConfiguration.Builder(context.applicationContext, BuildConfig.REVENUECAT_API_KEY).build()
+                )
+            }.isSuccess
         }
     }
 
