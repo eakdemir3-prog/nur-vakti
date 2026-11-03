@@ -125,6 +125,7 @@ class ScreenshotTest {
     }
     @Test fun home_ottoman() { val s = state(); shot("16_home_ottoman", "ottoman") { HomeScreen(s, {}, {}, {}) } }
     @Test fun home_night() { val s = state(); shot("17_home_night", "night") { HomeScreen(s, {}, {}, {}) } }
+    @Test fun login() { shot("00_login") { LoginScreen(false, {}, {}) } }
     @Test fun greetings() { shot("18_greetings") { GreetingsScreen({}, {}, {}) } }
     @Test fun profile_signin() {
         val acts = com.eavisionlabs.nurvakti.ui.components.AccountActions({}, {}, {}, {}, {}, {})

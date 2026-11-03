@@ -518,6 +518,11 @@ class UserPreferences(context: Context) {
         get() = prefs.getString("account_name", null)
         set(value) = prefs.edit().putString("account_name", value).apply()
 
+    /** Kullanıcı giriş ekranında "Hesapsız devam et" dedi */
+    var accountGuest: Boolean
+        get() = prefs.getBoolean("account_guest", false)
+        set(value) = prefs.edit().putBoolean("account_guest", value).apply()
+
     var cloudAutoBackup: Boolean
         get() = prefs.getBoolean("account_auto_backup", true)
         set(value) = prefs.edit().putBoolean("account_auto_backup", value).apply()

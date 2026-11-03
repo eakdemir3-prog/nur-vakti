@@ -616,6 +616,15 @@ object StringsEn {
         "Kurban Bayramınız Mübarek Olsun" to "Eid al-Adha Mubarak",
         "Hayırlı Sabahlar" to "Good Morning",
         "Hayırlı Geceler" to "Good Night",
-        "Geçmiş Olsun" to "Get Well Soon"
+        "Geçmiş Olsun" to "Get Well Soon",
+        "Hesapsız devam et" to "Continue without an account",
+        "Hesapsız kullanımda tüm özellikler açıktır; kayıtlarınız yalnızca bu telefonda tutulur. İstediğiniz zaman Profil'den giriş yapabilirsiniz." to "Without an account all features stay available; your records are kept only on this phone. You can sign in from Profile anytime.",
+        "Kayıtlarınız Google Drive'da güvende" to "Your records are safe in Google Drive",
+        "Namaz takibi, zikir, kaza ve hatim yedeklenir." to "Prayer log, dhikr, make-up prayers and khatm are backed up.",
+        "Namaz vakitleri, Kur'an-ı Kerim ve günlük ibadet arkadaşınız" to "Your companion for prayer times, the Quran and daily worship",
+        "Pro üyeliğiniz hesabınızda" to "Pro stays with your account",
+        "Satın aldığınız Pro her cihazda açılır." to "Pro you purchased unlocks on every device.",
+        "Telefon değişse de kaybolmaz" to "Nothing is lost when you change phones",
+        "Yeni cihazda giriş yapın, her şey geri gelsin." to "Sign in on a new device and everything comes back."
     )
 }

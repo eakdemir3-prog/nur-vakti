@@ -192,6 +192,8 @@ data class UiState(
     val cloudAutoBackup: Boolean = true,
     val cloudLastBackup: Long = 0L,
     val cloudBusy: Boolean = false,
+    /** Giriş ekranı gösterilsin mi (ne Google hesabı ne de hesapsız seçim var) */
+    val needsLogin: Boolean = false,
     val premiumPrices: Map<String, String> = emptyMap(),
     val premiumProduct: String? = null,
     val isPurchasing: Boolean = false,
@@ -299,6 +301,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             tasbihVibration = prefs.tasbihVibrationEnabled,
             tasbihVolumeKeys = prefs.tasbihVolumeKeys,
             accountEmail = prefs.accountEmail,
+            needsLogin = prefs.accountEmail == null && !prefs.accountGuest,
             accountName = prefs.accountName,
             cloudAutoBackup = prefs.cloudAutoBackup,
             cloudLastBackup = prefs.cloudLastBackup,
@@ -1236,7 +1239,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.accountId = info.id
                 prefs.accountEmail = info.email
                 prefs.accountName = info.name
-                _uiState.update { it.copy(accountEmail = info.email, accountName = info.name) }
+                prefs.accountGuest = false
+                _uiState.update { it.copy(accountEmail = info.email, accountName = info.name, needsLogin = false) }
                 billing.logIn(info.id)
                 showMessage(String.format(t("Hoş geldiniz, %s"), info.name ?: info.email))
                 // Buluttaki yedek varsa ve bu cihaz yeniyse geri yüklemeyi öner
@@ -1251,13 +1255,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Giriş ekranında "Hesapsız devam et" */
+    fun continueAsGuest() {
+        prefs.accountGuest = true
+        _uiState.update { it.copy(needsLogin = false) }
+    }
+
+    /** Çıkış: hesap bağlantısı kaldırılır ve giriş ekranına dönülür (kayıtlar telefonda kalır) */
     fun signOutGoogle() {
         viewModelScope.launch {
             com.eavisionlabs.nurvakti.account.GoogleAccount.signOut(app)
             billing.logOut()
             prefs.clearAccount()
-            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L) }
-            showMessage(t("Hesaptan çıkış yapıldı. Kayıtlarınız bu telefonda kalmaya devam eder."))
+            prefs.accountGuest = false
+            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L, needsLogin = true) }
         }
     }
 
@@ -1319,7 +1330,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             com.eavisionlabs.nurvakti.account.GoogleAccount.signOut(app)
             billing.logOut()
             prefs.clearAccount()
-            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L, cloudBusy = false) }
+            prefs.accountGuest = false
+            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L, cloudBusy = false, needsLogin = true) }
             showMessage(t("Hesabınız ve bulut yedeğiniz silindi. Pro aboneliğiniz Google Play'de devam eder; iptal için Play > Abonelikler."))
         }
     }

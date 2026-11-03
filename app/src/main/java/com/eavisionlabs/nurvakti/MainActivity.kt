@@ -397,6 +397,20 @@ fun NurVaktiApp(
         BackHandler { viewModel.navigateTo(AppScreen.HOME) }
     }
 
+    // Giriş ekranı: Google ile giriş ya da hesapsız devam
+    if (uiState.needsLogin) {
+        Box(Modifier.fillMaxSize()) {
+            LoginScreen(
+                isBusy = uiState.cloudBusy,
+                onGoogle = { activity.accountActions().signIn() },
+                onGuest = { viewModel.continueAsGuest() },
+                onOpenPrivacy = { activity.openUrl(MainActivity.PRIVACY_URL) }
+            )
+            SnackbarHost(snackbar, Modifier.align(androidx.compose.ui.Alignment.BottomCenter).navigationBarsPadding())
+        }
+        return
+    }
+
     if (!uiState.isOnboardingComplete) {
         OnboardingScreen(
             onComplete = {

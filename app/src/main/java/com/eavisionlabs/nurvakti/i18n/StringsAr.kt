@@ -616,6 +616,15 @@ object StringsAr {
         "Kurban Bayramınız Mübarek Olsun" to "عيد أضحى مبارك",
         "Hayırlı Sabahlar" to "صباح الخير",
         "Hayırlı Geceler" to "تصبحون على خير",
-        "Geçmiş Olsun" to "شفاك الله"
+        "Geçmiş Olsun" to "شفاك الله",
+        "Hesapsız devam et" to "المتابعة بدون حساب",
+        "Hesapsız kullanımda tüm özellikler açıktır; kayıtlarınız yalnızca bu telefonda tutulur. İstediğiniz zaman Profil'den giriş yapabilirsiniz." to "بدون حساب تبقى جميع الميزات متاحة وتُحفظ سجلاتك على هذا الهاتف فقط. يمكنك تسجيل الدخول من الملف الشخصي في أي وقت.",
+        "Kayıtlarınız Google Drive'da güvende" to "سجلاتك آمنة في Google Drive",
+        "Namaz takibi, zikir, kaza ve hatim yedeklenir." to "يتم نسخ سجل الصلاة والذكر والقضاء والختمة احتياطيًا.",
+        "Namaz vakitleri, Kur'an-ı Kerim ve günlük ibadet arkadaşınız" to "رفيقك لمواقيت الصلاة والقرآن الكريم والعبادة اليومية",
+        "Pro üyeliğiniz hesabınızda" to "اشتراك Pro مرتبط بحسابك",
+        "Satın aldığınız Pro her cihazda açılır." to "يُفعَّل Pro الذي اشتريته على كل أجهزتك.",
+        "Telefon değişse de kaybolmaz" to "لا يضيع شيء عند تغيير الهاتف",
+        "Yeni cihazda giriş yapın, her şey geri gelsin." to "سجّل الدخول على جهاز جديد ويعود كل شيء."
     )
 }
