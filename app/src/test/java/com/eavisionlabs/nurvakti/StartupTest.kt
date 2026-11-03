@@ -41,6 +41,22 @@ class StartupTest {
     }
 
     @Test
+    fun activityLaunchesReturningUser() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val p = com.eavisionlabs.nurvakti.data.UserPreferences(app)
+        p.isOnboardingCompleted = true
+        p.themeMode = "dark"
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        org.robolectric.shadows.ShadowLooper.idleMainLooper()
+        Thread.sleep(1500)
+        org.robolectric.shadows.ShadowLooper.idleMainLooper()
+        controller.pause().stop()
+        controller.start().resume()
+        org.robolectric.shadows.ShadowLooper.idleMainLooper()
+        controller.pause().stop().destroy()
+    }
+
+    @Test
     fun activityLaunches() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         assertNotNull(controller.get())
