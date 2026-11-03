@@ -441,6 +441,71 @@ class UserPreferences(context: Context) {
         set(value) = prefs.edit().putString("premium_product", value).apply()
 
     // ------------------------------------------------------------------
+    // Sahur & teheccüd uyandırma alarmı
+    // ------------------------------------------------------------------
+    var sahurAlarmEnabled: Boolean
+        get() = prefs.getBoolean("sahur_alarm", false)
+        set(value) = prefs.edit().putBoolean("sahur_alarm", value).apply()
+
+    /** İmsaktan kaç dakika önce çalacağı */
+    var sahurAlarmMinutes: Int
+        get() = prefs.getInt("sahur_alarm_min", 45)
+        set(value) = prefs.edit().putInt("sahur_alarm_min", value).apply()
+
+    var sahurOnlyRamadan: Boolean
+        get() = prefs.getBoolean("sahur_only_ramadan", true)
+        set(value) = prefs.edit().putBoolean("sahur_only_ramadan", value).apply()
+
+    /** Gecenin son üçte biri başladığında teheccüd alarmı */
+    var tahajjudAlarmEnabled: Boolean
+        get() = prefs.getBoolean("tahajjud_alarm", false)
+        set(value) = prefs.edit().putBoolean("tahajjud_alarm", value).apply()
+
+    // Zikirmatik: ses tuşlarıyla sayma
+    var tasbihVolumeKeys: Boolean
+        get() = prefs.getBoolean("tasbih_volume_keys", false)
+        set(value) = prefs.edit().putBoolean("tasbih_volume_keys", value).apply()
+
+    // Kaza planı: günde her vakitten kaç kaza
+    var kazaPerDay: Int
+        get() = prefs.getInt("kaza_per_day", 1)
+        set(value) = prefs.edit().putInt("kaza_per_day", value).apply()
+
+    // ------------------------------------------------------------------
+    // Reklam, ödüllü deneme ve değerlendirme (yedeğe alınmaz)
+    // ------------------------------------------------------------------
+    /** Ödüllü reklamla açılan 24 saatlik Pro denemesinin bitiş zamanı */
+    var rewardUnlockUntil: Long
+        get() = prefs.getLong("ads_reward_until", 0L)
+        set(value) = prefs.edit().putLong("ads_reward_until", value).apply()
+
+    var adsLastInterstitial: Long
+        get() = prefs.getLong("ads_last_interstitial", 0L)
+        set(value) = prefs.edit().putLong("ads_last_interstitial", value).apply()
+
+    var adsLastAppOpen: Long
+        get() = prefs.getLong("ads_last_app_open", 0L)
+        set(value) = prefs.edit().putLong("ads_last_app_open", value).apply()
+
+    var adsDayKey: String
+        get() = prefs.getString("ads_day", "") ?: ""
+        set(value) = prefs.edit().putString("ads_day", value).apply()
+
+    var adsDayCount: Int
+        get() = prefs.getInt("ads_day_count", 0)
+        set(value) = prefs.edit().putInt("ads_day_count", value).apply()
+
+    var reviewRequested: Boolean
+        get() = prefs.getBoolean("ads_review_requested", false)
+        set(value) = prefs.edit().putBoolean("ads_review_requested", value).apply()
+
+    var positiveMoments: Int
+        get() = prefs.getInt("ads_positive_moments", 0)
+        set(value) = prefs.edit().putInt("ads_positive_moments", value).apply()
+
+    private fun isPrivateKey(key: String) = key.startsWith("is_premium") || key == "premium_product" || key.startsWith("ads_")
+
+    // ------------------------------------------------------------------
     // Yedekleme
     // ------------------------------------------------------------------
     /** Tüm ayarları JSON olarak dışa aktarır (premium durumu hariç; o Play'den geri yüklenir). */
@@ -449,7 +514,7 @@ class UserPreferences(context: Context) {
         root.put("app", "NurVakti").put("version", 2).put("exportedAt", System.currentTimeMillis())
         val data = JSONObject()
         for ((key, value) in prefs.all) {
-            if (key.startsWith("is_premium") || key == "premium_product") continue
+            if (isPrivateKey(key)) continue
             val entry = JSONObject()
             when (value) {
                 is Boolean -> entry.put("t", "b").put("v", value)
@@ -474,7 +539,7 @@ class UserPreferences(context: Context) {
         val editor = prefs.edit()
         var count = 0
         for (key in data.keys()) {
-            if (key.startsWith("is_premium") || key == "premium_product") continue
+            if (isPrivateKey(key)) continue
             val e = data.getJSONObject(key)
             when (e.getString("t")) {
                 "b" -> editor.putBoolean(key, e.getBoolean("v"))

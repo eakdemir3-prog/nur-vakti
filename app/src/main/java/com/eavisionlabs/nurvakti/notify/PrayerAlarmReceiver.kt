@@ -80,9 +80,15 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                 PrayerAlarmScheduler.Kind.PRE_REMINDER -> {
                     val type = PrayerAlarmScheduler.prayerTypes[e.prayerIndex]
                     val prayerTime = e.time + prefs.preReminderMinutes * 60_000L
-                    val title = String.format(
-                        t("%1\$d dakika sonra %2\$s vakti"), prefs.preReminderMinutes, t(type.titleTr)
-                    )
+                    val dayCal = java.util.Calendar.getInstance(tz).apply { timeInMillis = prayerTime }
+                    val ramadan = PrayerCalculationEngine.hijriParts(dayCal).second == 9
+                    val m = prefs.preReminderMinutes
+                    val title = when {
+                        ramadan && type == com.eavisionlabs.nurvakti.model.PrayerType.AKSAM -> String.format(t("İftara %d dakika kaldı"), m)
+                        ramadan && type == com.eavisionlabs.nurvakti.model.PrayerType.IMSAK -> String.format(t("Sahurun bitmesine %d dakika kaldı"), m)
+                        type == com.eavisionlabs.nurvakti.model.PrayerType.IMSAK -> String.format(t("Sabah namazı vaktine %d dakika kaldı"), m)
+                        else -> String.format(t("%1\$s namazına %2\$d dakika kaldı"), t(type.titleTr), m)
+                    }
                     val text = "${city.displayName} • ${PrayerCalculationEngine.formatTime(prayerTime, tz)}"
                     NotificationHelper.notify(
                         context, NotificationHelper.ID_REMINDER_BASE + e.prayerIndex,
@@ -127,6 +133,22 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                             .setContentIntent(NotificationHelper.openAppIntent(context, 22, "HOME"))
                     )
+                }
+                PrayerAlarmScheduler.Kind.SAHUR, PrayerAlarmScheduler.Kind.TAHAJJUD -> {
+                    val sahur = e.kind == PrayerAlarmScheduler.Kind.SAHUR
+                    val title = if (sahur) t("Sahur vakti") else t("Teheccüd vakti")
+                    val imsak = PrayerCalculationEngine.timesForDate(city, java.util.Calendar.getInstance(tz).apply { timeInMillis = e.time + 6 * 60 * 60_000L })[0]
+                    val text = if (sahur) String.format(t("İmsak %s • Hayırlı sahurlar"), PrayerCalculationEngine.formatTime(imsak, tz))
+                    else t("Gecenin son üçte biri başladı. Dualarınız kabul olsun.")
+                    val i = Intent(context, AdhanService::class.java)
+                        .putExtra(AdhanService.EXTRA_TITLE, title)
+                        .putExtra(AdhanService.EXTRA_TEXT, text)
+                        .putExtra(AdhanService.EXTRA_WAKE, true)
+                    try {
+                        ContextCompat.startForegroundService(context, i)
+                    } catch (_: Exception) {
+                        postPrayer(context, NotificationHelper.CH_PRAYER_SOUND, 7, title, text)
+                    }
                 }
                 PrayerAlarmScheduler.Kind.REFRESH -> Unit
             }

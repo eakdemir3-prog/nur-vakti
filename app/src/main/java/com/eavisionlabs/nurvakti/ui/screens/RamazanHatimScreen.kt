@@ -3,6 +3,7 @@ package com.eavisionlabs.nurvakti.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,6 +38,8 @@ fun RamazanHatimScreen(
     onNavigateZakat: () -> Unit,
     onOpenJuz: (Int) -> Unit = {},
     onShare: (String) -> Unit = {},
+    onShareImage: (android.graphics.Bitmap) -> Unit = {},
+    onOpenPremium: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     BackHandler { onBack() }
@@ -327,6 +330,8 @@ fun RamazanHatimScreen(
         }
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var imsakiyeStyle by remember { mutableIntStateOf(0) }
     if (showImsakiye) {
         ModalBottomSheet(onDismissRequest = { showImsakiye = false }, containerColor = MaterialTheme.colorScheme.surface) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).navigationBarsPadding()) {
@@ -347,7 +352,38 @@ fun RamazanHatimScreen(
                     }) { Icon(Icons.Default.Share, contentDescription = t("Paylaş"), tint = GoldChampagne) }
                 }
                 if (!uiState.isPremiumActive) {
-                    Text(t("İmsakiyenin tamamını metin olarak paylaşmak Pro özelliğidir."), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(t("İmsakiyenin tamamını görsel ya da metin olarak paylaşmak Pro özelliğidir."), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        if (!uiState.isPremiumActive) { showImsakiye = false; onOpenPremium(); return@Button }
+                        val bmp = runCatching {
+                            com.eavisionlabs.nurvakti.share.ShareCardRenderer.renderImsakiye(
+                                context, com.eavisionlabs.nurvakti.share.ShareCardRenderer.styles[imsakiyeStyle],
+                                uiState.selectedCity.displayName,
+                                ramadan.imsakiye.firstOrNull()?.hijriDate?.substringAfterLast(' ')?.let { "$it " + t("Ramazan-ı Şerif") } ?: t("Ramazan-ı Şerif"),
+                                ramadan.imsakiye
+                            )
+                        }.getOrNull()
+                        if (bmp != null) onShareImage(bmp)
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 46.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = GoldChampagne, contentColor = EmeraldDarkest)
+                ) {
+                    Icon(if (uiState.isPremiumActive) Icons.Default.Image else Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(t("İmsakiyeyi görsel olarak paylaş"), fontWeight = FontWeight.Bold, maxLines = 1)
+                }
+                Row(Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    com.eavisionlabs.nurvakti.share.ShareCardRenderer.styles.forEachIndexed { i, st ->
+                        FilterChip(
+                            selected = imsakiyeStyle == i,
+                            onClick = { imsakiyeStyle = i },
+                            label = { Text(t(st.name).substringBefore(' '), maxLines = 1, fontSize = 11.sp) }
+                        )
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {

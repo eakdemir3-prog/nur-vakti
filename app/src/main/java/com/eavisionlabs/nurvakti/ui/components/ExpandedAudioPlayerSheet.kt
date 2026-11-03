@@ -35,7 +35,8 @@ fun ExpandedAudioPlayerSheet(
     onPlayPrevious: () -> Unit,
     onSetSpeed: (Float) -> Unit,
     onSetSleepTimer: (Int?) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onSetReciter: ((String) -> Unit)? = null
 ) {
     var showSpeedDialog by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -238,6 +239,18 @@ fun ExpandedAudioPlayerSheet(
                             "${playerState.sleepTimerMinutesRemaining} dk" else "Uyku Modu"
                     )
                 }
+            }
+
+            // Hafız seçimi (sure dinleme)
+            if (onSetReciter != null && !playerState.ayahMode) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(t("Hafız"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(6.dp))
+                ChoiceChips(
+                    options = com.eavisionlabs.nurvakti.data.QuranRepository.surahReciters,
+                    selected = playerState.currentReciterKey,
+                    onSelect = onSetReciter
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))

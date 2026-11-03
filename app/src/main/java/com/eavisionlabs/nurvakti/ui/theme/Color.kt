@@ -48,6 +48,20 @@ object Palettes {
         gold = Color(0xFFD4AF37), goldLight = Color(0xFFE8D48A), goldMuted = Color(0xFFA4862A), goldContainer = Color(0xFF2A2312),
         cream = Color(0xFFF5EFE0), softGrey = Color(0xFFB3AA98), muted = Color(0xFF8C8473), isDark = true
     )
+    /** Osmanlı Bordosu (Pro) */
+    val Ottoman = NurPalette(
+        darkest = Color(0xFF1E070C), deep = Color(0xFF3A0F18), secondary = Color(0xFF5A1825),
+        card = Color(0xFF2C0B12), cardElevated = Color(0xFF3A1019), border = Color(0xFF64222F),
+        gold = Color(0xFFE2BE6E), goldLight = Color(0xFFF0DCA6), goldMuted = Color(0xFFA9874A), goldContainer = Color(0xFF3A2A12),
+        cream = Color(0xFFFBF3E6), softGrey = Color(0xFFC9B2AE), muted = Color(0xFF9C8582), isDark = true
+    )
+    /** Gece Mavisi & Yıldızlar (Pro) */
+    val Night = NurPalette(
+        darkest = Color(0xFF070B1C), deep = Color(0xFF111A3A), secondary = Color(0xFF1F2C5C),
+        card = Color(0xFF0F1630), cardElevated = Color(0xFF16204A), border = Color(0xFF26346B),
+        gold = Color(0xFFE6C878), goldLight = Color(0xFFF2E2B0), goldMuted = Color(0xFFA48E50), goldContainer = Color(0xFF2A2716),
+        cream = Color(0xFFF3F1EA), softGrey = Color(0xFFAEB6D0), muted = Color(0xFF7F88A6), isDark = true
+    )
 }
 
 val LocalNurPalette = staticCompositionLocalOf { Palettes.Dark }

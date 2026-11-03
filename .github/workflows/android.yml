@@ -50,6 +50,17 @@ jobs:
             --target "${{ github.sha }}" --prerelease --title "CI log #${{ github.run_number }}" --notes "failed build log" \
           || { git config user.name ci; git config user.email ci@users.noreply.github.com; git checkout -b ci-log-${{ github.run_number }}; git add -f errors.txt; git commit -m log; git push origin ci-log-${{ github.run_number }}; }
 
+      - name: Check reciter audio URLs
+        continue-on-error: true
+        run: |
+          mkdir -p out
+          for u in server8.mp3quran.net/afs server7.mp3quran.net/basit server12.mp3quran.net/maher server8.mp3quran.net/ghamdi \
+                   server11.mp3quran.net/sds server7.mp3quran.net/shur server13.mp3quran.net/husr server10.mp3quran.net/minsh server11.mp3quran.net/yasser; do
+            code=$(curl -s -o /dev/null -w "%{http_code} %{content_type}" -I "https://$u/001.mp3" || echo fail)
+            echo "$u $code" >> out/reciters.txt
+          done
+          cat out/reciters.txt
+
       - name: Collect outputs
         run: |
           mkdir -p out

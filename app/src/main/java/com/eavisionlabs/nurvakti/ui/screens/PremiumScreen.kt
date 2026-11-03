@@ -33,6 +33,7 @@ fun PremiumScreen(
     onBack: () -> Unit,
     onPurchase: (String) -> Unit,
     onRestore: () -> Unit,
+    onWatchReward: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var selectedPlan by remember { mutableStateOf("yearly") }
@@ -58,7 +59,7 @@ fun PremiumScreen(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        t("Namaz vakitleri, ezan, Kur'an ve tüm temel özellikler her zaman ücretsizdir. Pro, ek araçlarla geliştirmemize destek olur."),
+                        t("Namaz vakitleri, ezan, Kur'an ve tüm temel özellikler her zaman ücretsizdir. Pro ile reklamsız kullanır, ek araçlara erişirsiniz."),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
@@ -66,7 +67,28 @@ fun PremiumScreen(
                 }
             }
 
-            if (uiState.isPremiumActive) {
+            if (!uiState.isPaidPremium && uiState.isPremiumActive && uiState.rewardUntil > 0L) {
+                item {
+                    val until = java.text.SimpleDateFormat("d MMM HH:mm", java.util.Locale.getDefault()).format(java.util.Date(uiState.rewardUntil))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.HourglassTop, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                String.format(t("Pro denemeniz açık • Bitiş: %s"), until),
+                                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (uiState.isPaidPremium) {
                 item {
                     Surface(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -103,17 +125,18 @@ fun PremiumScreen(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        ProFeature(Icons.Default.Palette, t("Kâbe Örtüsü (Kiswa) teması"), t("Siyah-altın özel uygulama teması."))
+                        ProFeature(Icons.Default.Block, t("Reklamsız kullanım"), t("Uygulamanın hiçbir yerinde reklam görmezsiniz."))
+                        ProFeature(Icons.Default.Palette, t("Özel temalar"), t("Kâbe Örtüsü, Osmanlı Bordosu ve Gece Mavisi temaları."))
                         ProFeature(Icons.Default.Repeat, t("Hıfz (ezber) modu"), t("Her ayeti 3, 5 veya 10 kez tekrarlatma; Arapça metni ya da meali gizleyip kendinizi sınama."))
                         ProFeature(Icons.Default.Insights, t("Aylık ibadet analizleri"), t("Son 30 günün namaz grafiği ve ayrıntılı seri istatistikleri."))
                         ProFeature(Icons.Default.Share, t("İmsakiye paylaşımı"), t("Bulunduğunuz yerin Ramazan imsakiyesini metin olarak paylaşın."))
-                        ProFeature(Icons.Default.Favorite, t("Geliştirmeye destek"), t("NurVakti'nin reklamsız ve ücretsiz kalmasına katkı sağlarsınız."))
+                        ProFeature(Icons.Default.Favorite, t("Geliştirmeye destek"), t("NurVakti'nin geliştirilmesine ve ücretsiz kalmasına katkı sağlarsınız."))
                     }
                 }
                 Spacer(Modifier.height(20.dp))
             }
 
-            if (!uiState.isPremiumActive) {
+            if (!uiState.isPaidPremium) {
                 item {
                     Text(t("Planınızı seçin"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(10.dp))
@@ -135,6 +158,24 @@ fun PremiumScreen(
                     ) {
                         if (uiState.isPurchasing) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = EmeraldDarkest)
                         else Text(t("Devam et"), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                    if (onWatchReward != null && !uiState.isPremiumActive) {
+                        Spacer(Modifier.height(10.dp))
+                        OutlinedButton(
+                            onClick = onWatchReward,
+                            enabled = uiState.rewardedAdReady,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, GoldChampagne),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = GoldChampagne)
+                        ) {
+                            Icon(Icons.Default.OndemandVideo, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                if (uiState.rewardedAdReady) t("Kısa bir reklam izle, 24 saat ücretsiz dene") else t("Deneme reklamı hazırlanıyor…"),
+                                maxLines = 2, textAlign = TextAlign.Center
+                            )
+                        }
                     }
                     if (prices.isEmpty()) {
                         Spacer(Modifier.height(8.dp))

@@ -87,6 +87,14 @@ fun ExploreScreen(
             screen = AppScreen.KAZA_NAMAZ
         ),
         ExploreToolItem(
+            id = "topics",
+            title = t("Konulu Kur'an Fihristi"),
+            subtitle = t("Huzur, sabır, rızık, şifa, tövbe, aile… konuya göre ayetler"),
+            icon = Icons.Default.Topic,
+            accentColor = Color(0xFF5C9DFF),
+            screen = AppScreen.TOPICS
+        ),
+        ExploreToolItem(
             id = "duas",
             title = t("Mübarek Dualar Kütüphanesi"),
             subtitle = t("Sabah, akşam, şifa ve Kur'an'da geçen dualar"),

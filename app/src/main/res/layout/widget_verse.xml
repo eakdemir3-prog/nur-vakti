@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/v_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageView android:layout_width="16dp" android:layout_height="16dp"
+            android:src="@drawable/ic_stat_crescent" android:tint="#FFD8B875" android:layout_marginEnd="6dp" />
+        <TextView android:id="@+id/v_title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="Günün Ayeti" android:textColor="#FFD8B875" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
+        <TextView android:id="@+id/v_ref" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="#FFA9B5AF" android:textSize="11sp" android:maxLines="1" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/v_arabic" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:gravity="end" android:textDirection="rtl"
+        android:textColor="#FFF7F4EC" android:textSize="17sp" android:maxLines="2" android:ellipsize="end" />
+
+    <TextView android:id="@+id/v_text" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:layout_marginTop="4dp" android:textColor="#FFEAD8A6" android:textSize="13sp"
+        android:lineSpacingExtra="2dp" android:ellipsize="end" android:maxLines="5"
+        android:text="Kalpler ancak Allah'ı anmakla huzura kavuşur." />
+</LinearLayout>

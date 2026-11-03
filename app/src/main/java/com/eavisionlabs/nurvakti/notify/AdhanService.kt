@@ -28,6 +28,10 @@ class AdhanService : Service() {
         const val EXTRA_TEXT = "text"
         const val ACTION_STOP = "com.eavisionlabs.nurvakti.STOP_ADHAN"
         const val EXTRA_PREVIEW = "preview"
+        /** Sahur / teheccüd uyandırması: uygulamadaki huzurlu ney sesi, sesi yavaşça yükselir */
+        const val EXTRA_WAKE = "wake"
+        private const val MAX_WAKE_MS = 3 * 60_000L
+        private const val PREVIEW_MS = 12_000L
         private const val MAX_DEFAULT_TONE_MS = 45_000L
         private const val MAX_ADHAN_MS = 6 * 60_000L
     }
@@ -35,6 +39,16 @@ class AdhanService : Service() {
     private var player: MediaPlayer? = null
     private val handler = Handler(Looper.getMainLooper())
     private val stopRunnable = Runnable { stopSelfSafely() }
+    private var rampStep = 0
+    private val rampRunnable = object : Runnable {
+        override fun run() {
+            val p = player ?: return
+            rampStep++
+            val v = (0.15f + rampStep * 0.05f).coerceAtMost(1f)
+            runCatching { p.setVolume(v, v) }
+            if (v < 1f) handler.postDelayed(this, 1500L)
+        }
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -46,7 +60,9 @@ class AdhanService : Service() {
         val title = intent?.getStringExtra(EXTRA_TITLE) ?: t("Ezan")
         val text = intent?.getStringExtra(EXTRA_TEXT) ?: ""
         startAsForeground(title, text)
-        play()
+        val wake = intent?.getBooleanExtra(EXTRA_WAKE, false) == true
+        val preview = intent?.getBooleanExtra(EXTRA_PREVIEW, false) == true
+        if (wake) playWake(preview) else play()
         return START_NOT_STICKY
     }
 
@@ -112,7 +128,36 @@ class AdhanService : Service() {
         }
     }
 
+    private fun playWake(preview: Boolean) {
+        releasePlayer()
+        val p = MediaPlayer()
+        try {
+            p.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            val afd = resources.openRawResourceFd(com.eavisionlabs.nurvakti.R.raw.huzur_alarm)
+            p.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+            afd.close()
+            p.isLooping = true
+            p.prepare()
+            val start = if (preview) 0.7f else 0.15f
+            p.setVolume(start, start)
+            p.start()
+            player = p
+            rampStep = 0
+            if (!preview) handler.postDelayed(rampRunnable, 1500L)
+            handler.postDelayed(stopRunnable, if (preview) PREVIEW_MS else MAX_WAKE_MS)
+        } catch (_: Exception) {
+            p.release()
+            play()
+        }
+    }
+
     private fun releasePlayer() {
+        handler.removeCallbacks(rampRunnable)
         handler.removeCallbacks(stopRunnable)
         player?.let { runCatching { it.stop() }; it.release() }
         player = null

@@ -28,6 +28,7 @@ fun KazaNamazScreen(
     onBack: () -> Unit,
     onUpdateKaza: (type: String, delta: Int) -> Unit,
     onAddBulkKazaDays: (days: Int) -> Unit,
+    onSetKazaPerDay: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     BackHandler { onBack() }
@@ -167,6 +168,17 @@ fun KazaNamazScreen(
                 }
             }
 
+            // Akıllı plan
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                KazaPlanCard(uiState, onSetKazaPerDay)
+            }
+            // Hesaplayıcı
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                KazaCalculatorCard(onAdd = onAddBulkKazaDays)
+            }
+
             // Quick Add Preset Card
             item {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -230,6 +242,135 @@ fun KazaNamazScreen(
                     Text(t("Vazgeç"))
                 }
             }
+        )
+    }
+}
+
+
+@Composable
+private fun KazaPlanCard(uiState: UiState, onSetKazaPerDay: (Int) -> Unit) {
+    val maxRemaining = listOf(uiState.kazaSabah, uiState.kazaOgle, uiState.kazaIkindi, uiState.kazaAksam, uiState.kazaYatsi, uiState.kazaVitir).maxOrNull() ?: 0
+    val perDay = uiState.kazaPerDay
+    val days = if (maxRemaining == 0) 0 else (maxRemaining + perDay - 1) / perDay
+    val finish = java.util.Calendar.getInstance().apply { add(java.util.Calendar.DAY_OF_MONTH, days) }
+    val fmt = java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale.forLanguageTag(if (com.eavisionlabs.nurvakti.i18n.I18n.language == "tr") "tr" else "en"))
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, GoldChampagne.copy(alpha = 0.5f))
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.EventAvailable, contentDescription = null, tint = GoldChampagne, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(t("Tamamlama Planı"), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = GoldChampagne))
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(t("Günde her vakitten kaç kaza kılacaksınız?"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(6.dp))
+            com.eavisionlabs.nurvakti.ui.components.ChoiceChips(
+                options = listOf(1 to "+1", 2 to "+2", 3 to "+3", 5 to "+5"),
+                selected = perDay,
+                onSelect = onSetKazaPerDay
+            )
+            Spacer(Modifier.height(8.dp))
+            if (maxRemaining == 0) {
+                Text(t("Kayıtlı kaza borcunuz yok. Allah kabul etsin."), color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium)
+            } else {
+                Text(
+                    String.format(t("Günde +%1\$d ile yaklaşık %2\$d günde (%3\$s) tamamlanır."), perDay, days, fmt.format(finish.time)),
+                    color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold
+                )
+                if (days > 365) {
+                    Text(
+                        String.format(t("Bu, yaklaşık %.1f yıl eder."), days / 365.0),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KazaCalculatorCard(onAdd: (Int) -> Unit) {
+    var pubertyAge by remember { mutableStateOf("12") }
+    var startedAge by remember { mutableStateOf("") }
+    var percent by remember { mutableStateOf(100f) }
+    var confirm by remember { mutableStateOf(false) }
+    val p = pubertyAge.toIntOrNull()
+    val st = startedAge.toIntOrNull()
+    val years = if (p != null && st != null && st > p) st - p else 0
+    val days = (years * 365 * (percent / 100f)).toInt()
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Calculate, contentDescription = null, tint = GoldChampagne, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(t("Kaza Borcu Hesaplayıcı"), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = GoldChampagne))
+            }
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = pubertyAge,
+                    onValueChange = { v -> if (v.length <= 2 && v.all { it.isDigit() }) pubertyAge = v },
+                    label = { Text(t("Ergenlik yaşı")) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = startedAge,
+                    onValueChange = { v -> if (v.length <= 2 && v.all { it.isDigit() }) startedAge = v },
+                    label = { Text(t("Düzenli kılmaya başladığım yaş")) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                String.format(t("Bu dönemde kılınmayan namaz oranı: %%%d"), percent.toInt()),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Slider(
+                value = percent, onValueChange = { percent = (it / 10f).toInt() * 10f }, valueRange = 10f..100f, steps = 8,
+                colors = SliderDefaults.colors(thumbColor = GoldChampagne, activeTrackColor = GoldChampagne)
+            )
+            if (years > 0) {
+                Text(
+                    String.format(t("Tahmini borç: %1\$d yıl ≈ %2\$d gün (her vakitten %2\$d)"), years, days),
+                    color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { confirm = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = GoldChampagne, contentColor = MaterialTheme.colorScheme.onPrimary)
+                ) { Text(t("Kaza defterime ekle"), fontWeight = FontWeight.Bold) }
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                t("Hesap tahminidir. Ergenlik (bulûğ) belirtileri erkeklerde en erken 12, kızlarda en erken 9 yaşında görülebilir; belirti yoksa 15 yaş esas alınır. Emin değilseniz bir din görevlisine danışın."),
+                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(t("Kaza defterine eklensin mi?")) },
+            text = { Text(String.format(t("Her vakit (vitir dahil) için %d kaza eklenecek."), days)) },
+            confirmButton = { Button(onClick = { onAdd(days); confirm = false }) { Text(t("Ekle")) } },
+            dismissButton = { TextButton(onClick = { confirm = false }) { Text(t("Vazgeç")) } }
         )
     }
 }

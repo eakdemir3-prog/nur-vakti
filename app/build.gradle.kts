@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.nurvakti.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 5
-    versionName = "1.0.4"
+    versionCode = 6
+    versionName = "1.1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -27,6 +27,14 @@ android {
       ?: System.getenv("REVENUECAT_API_KEY")
       ?: ""
     buildConfigField("String", "REVENUECAT_API_KEY", "\"$rcKey\"")
+
+    // AdMob kimlikleri gradle.properties'ten okunur. Boşsa release sürümünde reklam gösterilmez.
+    fun prop(name: String) = (project.findProperty(name) as String?)?.trim().orEmpty()
+    val admobApp = prop("admobAppId").ifEmpty { "ca-app-pub-3940256099942544~3347511713" }
+    manifestPlaceholders["admobAppId"] = admobApp
+    buildConfigField("String", "AD_INTERSTITIAL", "\"${prop("admobInterstitialId")}\"")
+    buildConfigField("String", "AD_APP_OPEN", "\"${prop("admobAppOpenId")}\"")
+    buildConfigField("String", "AD_REWARDED", "\"${prop("admobRewardedId")}\"")
   }
 
   signingConfigs {
@@ -57,6 +65,11 @@ android {
       if (hasReleaseKeystore) signingConfig = signingConfigs.getByName("release")
     }
     debug {
+      // Test APK'sında Google'ın test reklamları gösterilir
+      manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+      buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-3940256099942544/1033173712\"")
+      buildConfigField("String", "AD_APP_OPEN", "\"ca-app-pub-3940256099942544/9257395921\"")
+      buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-3940256099942544/5224354917\"")
       applicationIdSuffix = ".debug"
       versionNameSuffix = "-test"
     }
@@ -96,6 +109,9 @@ dependencies {
   implementation(libs.revenuecat.purchases)
   // play-services eski fragment 1.1.0 getiriyor; Play uyarısı için güncel sürüme zorlanır
   implementation(libs.androidx.fragment)
+  implementation(libs.play.services.ads)
+  implementation(libs.ump)
+  implementation(libs.play.review)
 
   testImplementation(libs.junit)
   testImplementation(libs.robolectric)

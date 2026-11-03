@@ -279,7 +279,7 @@ fun ProfileScreen(
             // Theme Toggle
             SettingsRow(
                 title = t("Görünüm Teması"),
-                subtitle = when (uiState.themeMode) { "light" -> t("Fildişi (Açık)"); "system" -> t("Sistem"); "kiswa" -> t("Kâbe Örtüsü"); else -> t("Gece Zümrüdü") },
+                subtitle = when (uiState.themeMode) { "light" -> t("Fildişi (Açık)"); "system" -> t("Sistem"); "kiswa" -> t("Kâbe Örtüsü"); "ottoman" -> t("Osmanlı Bordosu"); "night" -> t("Gece Mavisi"); else -> t("Gece Zümrüdü") },
                 icon = if (uiState.themeMode == "light") Icons.Default.LightMode else Icons.Default.DarkMode,
                 onClick = onToggleTheme
             )

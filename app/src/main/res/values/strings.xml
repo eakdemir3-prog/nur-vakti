@@ -2,4 +2,6 @@
     <string name="app_name">NurVakti</string>
     <string name="widget_name">NurVakti – Sıradaki Vakit</string>
     <string name="widget_description">Sıradaki namaz vaktine kalan süre ve günün vakitleri</string>
+    <string name="verse_widget_name">Günün Ayeti – NurVakti</string>
+    <string name="verse_widget_description">Her gün değişen bir ayet-i kerime ve meali</string>
 </resources>

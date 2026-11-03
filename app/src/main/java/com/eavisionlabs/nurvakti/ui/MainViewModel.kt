@@ -47,7 +47,16 @@ enum class AppScreen {
     KAZA_NAMAZ,
     SETTINGS,
     PREMIUM,
-    PRAYER_TRACKER
+    PRAYER_TRACKER,
+    TOPICS
+}
+
+/** ViewModel'den Activity'ye tek seferlik olaylar */
+sealed interface UiEvent {
+    /** Doğal bir bitiş: uygunsa geçiş reklamı */
+    data object AdBreak : UiEvent
+    /** Olumlu bir an: Play değerlendirme penceresi */
+    data object AskReview : UiEvent
 }
 
 data class ZakatCalculationResult(
@@ -142,6 +151,7 @@ data class UiState(
     val customDhikrs: List<List<String>> = emptyList(),
     val dhikrWeek: List<DayStat> = emptyList(),
     val tasbihVibration: Boolean = true,
+    val tasbihVolumeKeys: Boolean = false,
 
     // Dualar & Esma
     val selectedDuaCategory: String = "sabah",
@@ -167,7 +177,13 @@ data class UiState(
 
     // Premium & kaza
     val isPremiumSheetVisible: Boolean = false,
+    /** Pro özellikleri açık mı (satın alma ya da ödüllü reklamla 24 saatlik deneme) */
     val isPremiumActive: Boolean = false,
+    /** Gerçek (ücretli) Pro üyeliği — reklamsızlık buna bağlı */
+    val isPaidPremium: Boolean = false,
+    /** Ödüllü reklamla açılan denemenin bitişi (0: yok) */
+    val rewardUntil: Long = 0L,
+    val rewardedAdReady: Boolean = false,
     val premiumPrices: Map<String, String> = emptyMap(),
     val premiumProduct: String? = null,
     val isPurchasing: Boolean = false,
@@ -178,6 +194,7 @@ data class UiState(
     val kazaAksam: Int = 0,
     val kazaYatsi: Int = 0,
     val kazaVitir: Int = 0,
+    val kazaPerDay: Int = 1,
 
     // Görünüm & dil
     val themeMode: String = "dark",
@@ -193,6 +210,10 @@ data class UiState(
     val fridayReminder: Boolean = true,
     val kandilReminder: Boolean = true,
     val dailyVerseNotification: Boolean = true,
+    val sahurAlarm: Boolean = false,
+    val sahurAlarmMinutes: Int = 45,
+    val sahurOnlyRamadan: Boolean = true,
+    val tahajjudAlarm: Boolean = false,
     val notificationsAllowed: Boolean = true,
     val exactAlarmAllowed: Boolean = true,
     val prayerAdjustments: List<Int> = List(6) { 0 },
@@ -216,6 +237,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var countdownJob: Job? = null
+    private val _events = kotlinx.coroutines.flow.MutableSharedFlow<UiEvent>(extraBufferCapacity = 4)
+    val events: kotlinx.coroutines.flow.SharedFlow<UiEvent> = _events
+    /** Bu tesbih oturumunda hedefe ulaşıldı mı (çıkışta reklam molası için) */
+    private var tasbihGoalHitThisVisit = false
+    /** Çıkışında reklam molası verilebilecek ekranlar (Kur'an, ezan ve vakit ekranları hariç) */
+    private val adExitScreens = setOf(
+        AppScreen.DUAS, AppScreen.ASMAUL_HUSNA, AppScreen.ZAKAT_CALCULATOR, AppScreen.QIBLA,
+        AppScreen.RAMAZAN_HATIM, AppScreen.TOPICS, AppScreen.KAZA_NAMAZ
+    )
     private var currentDayKey = UserPreferences.dayKey()
 
     init {
@@ -254,8 +284,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             selectedDhikrMeaning = prefs.selectedDhikrMeaning,
             customDhikrs = prefs.getCustomDhikrs(),
             tasbihVibration = prefs.tasbihVibrationEnabled,
+            tasbihVolumeKeys = prefs.tasbihVolumeKeys,
+            kazaPerDay = prefs.kazaPerDay,
             completedJuzs = prefs.getHatimCompletedJuzs(),
-            isPremiumActive = prefs.isPremiumActive,
+            isPremiumActive = prefs.isPremiumActive || prefs.rewardUnlockUntil > System.currentTimeMillis(),
+            isPaidPremium = prefs.isPremiumActive,
+            rewardUntil = prefs.rewardUnlockUntil,
             premiumProduct = prefs.premiumProductId,
             kazaSabah = prefs.kazaSabah,
             kazaOgle = prefs.kazaOgle,
@@ -295,9 +329,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             billing.state.collect { b ->
+                if (b.isPremium) com.eavisionlabs.nurvakti.ads.AdsManager.onBecamePro()
                 _uiState.update {
                     it.copy(
-                        isPremiumActive = b.isPremium,
+                        isPremiumActive = b.isPremium || rewardActive(),
+                        isPaidPremium = b.isPremium,
                         premiumProduct = b.activeProduct,
                         premiumPrices = b.prices,
                         isPurchasing = b.isPurchasing,
@@ -305,11 +341,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
                 if (b.message != null) billing.clearMessage()
-                // Premium bittiyse Kiswa temasından çık
-                if (!b.isPremium && prefs.themeMode == "kiswa") setThemeMode("dark")
+                // Premium bittiyse Pro temalardan çık
+                if (!b.isPremium && !rewardActive() && prefs.themeMode in proThemes) setThemeMode("dark")
             }
         }
         billing.connect()
+        com.eavisionlabs.nurvakti.ads.AdsManager.onRewardedAvailabilityChanged = { ready ->
+            _uiState.update { it.copy(rewardedAdReady = ready) }
+        }
+        _uiState.update { it.copy(rewardedAdReady = com.eavisionlabs.nurvakti.ads.AdsManager.rewardedReady) }
 
         if (autoLocationManager.isLocationPermissionGranted() && prefs.loadCity()?.id == AutoLocationManager.AUTO_CITY_ID) {
             detectLocation()
@@ -346,7 +386,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         when (screen) {
             AppScreen.PRAYER_TRACKER, AppScreen.PROFILE -> refreshStats()
-            AppScreen.TASBIH -> refreshDhikrStats()
+            AppScreen.TASBIH -> { refreshDhikrStats(); tasbihGoalHitThisVisit = false }
             AppScreen.SETTINGS -> refreshNotificationSettings()
             else -> Unit
         }
@@ -358,6 +398,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (stack.size > 1) {
             val leaving = stack.removeAt(stack.lastIndex)
             if (leaving == AppScreen.QURAN_READER && _uiState.value.playerState.ayahMode) audioPlayerManager.stop()
+            if (leaving in adExitScreens || (leaving == AppScreen.TASBIH && tasbihGoalHitThisVisit)) {
+                tasbihGoalHitThisVisit = false
+                _events.tryEmit(UiEvent.AdBreak)
+            }
             val previous = stack.last()
             if (previous == AppScreen.QIBLA) compassSensorManager.startListening() else compassSensorManager.stopListening()
             _uiState.update { it.copy(currentScreen = previous, navigationStack = stack) }
@@ -372,6 +416,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             "PRAYER_TIMES" -> navigateTo(AppScreen.PRAYER_TIMES)
             "HOME" -> navigateTo(AppScreen.HOME)
             "SHARE_GREETING" -> navigateTo(AppScreen.HOME)
+            "TOPICS" -> navigateTo(AppScreen.TOPICS)
+            else -> if (screen != null && screen.startsWith("AYAH:")) {
+                val parts = screen.removePrefix("AYAH:").split(':')
+                val s = parts.getOrNull(0)?.toIntOrNull(); val a = parts.getOrNull(1)?.toIntOrNull()
+                if (s != null && a != null) openAyah(s, a)
+            }
         }
     }
 
@@ -448,7 +498,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     refreshPrayerTimes()
                     continue
                 }
-                val s = _uiState.value.prayerSchedule ?: continue
+                val st = _uiState.value
+                if (st.rewardUntil > 0L && !st.isPaidPremium && st.isPremiumActive && System.currentTimeMillis() > st.rewardUntil) {
+                    onRewardExpired()
+                }
+                val s = st.prayerSchedule ?: continue
                 val next = s.nextPrayer ?: continue
                 val remaining = (next.timestampMillis - System.currentTimeMillis()).coerceAtLeast(0L)
                 if (remaining == 0L) refreshPrayerTimes()
@@ -495,6 +549,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         prefs.setPrayersForDay(day, current)
         _uiState.update { it.copy(completedPrayersToday = current) }
         refreshStats()
+        val fardh = setOf("IMSAK", "OGLE", "IKINDI", "AKSAM", "YATSI", "Imsak", "Dhuhr", "Asr", "Maghrib", "Isha")
+        if (current.count { it in fardh } >= 5) positiveMoment()
     }
 
     private val shortDays = arrayOf("", "Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt")
@@ -772,7 +828,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val target = _uiState.value.targetDhikrCount
         val day = UserPreferences.dayKey()
         val total = prefs.getDhikrForDay(day) + 1
-        if (prefs.tasbihVibrationEnabled) triggerHaptic(isTargetReached = target > 0 && next % target == 0)
+        val reachedTarget = target > 0 && next % target == 0
+        if (prefs.tasbihVibrationEnabled) {
+            when {
+                reachedTarget -> triggerHaptic(isTargetReached = true)
+                next % 33 == 0 -> triggerHaptic(milestone = true)
+                else -> triggerHaptic()
+            }
+        }
+        if (reachedTarget) { tasbihGoalHitThisVisit = true; positiveMoment() }
         prefs.tasbihCurrentCount = next
         prefs.setDhikrForDay(day, total)
         prefs.todayDhikrCompleted = total
@@ -835,6 +899,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(tasbihVibration = enabled) }
     }
 
+    fun setTasbihVolumeKeys(enabled: Boolean) {
+        prefs.tasbihVolumeKeys = enabled
+        _uiState.update { it.copy(tasbihVolumeKeys = enabled) }
+        showMessage(if (enabled) t("Ses tuşlarıyla zikir açık: ekrana bakmadan ses tuşuna basarak sayabilirsiniz.") else t("Ses tuşlarıyla zikir kapatıldı."))
+    }
+
+    /** Tesbih ekranı açıkken ses tuşu basıldığında (Activity'den) */
+    fun onVolumeKeyDhikr(): Boolean {
+        val st = _uiState.value
+        if (st.currentScreen != AppScreen.TASBIH || !st.tasbihVolumeKeys) return false
+        incrementDhikr()
+        return true
+    }
+
     // ------------------------------------------------------------------
     // Dualar & Esma
     // ------------------------------------------------------------------
@@ -871,7 +949,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun toggleJuzCompleted(juz: Int) {
         val set = _uiState.value.completedJuzs.toMutableSet()
-        if (!set.remove(juz)) { set.add(juz); triggerHaptic() }
+        if (!set.remove(juz)) { set.add(juz); triggerHaptic(); positiveMoment() }
         prefs.setHatimCompletedJuzs(set)
         _uiState.update { it.copy(completedJuzs = set) }
     }
@@ -900,8 +978,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /** Eski profil düğmesi: koyu <-> açık */
     fun toggleAppTheme() = setThemeMode(if (_uiState.value.themeMode == "light") "dark" else "light")
 
+    private val proThemes = setOf("kiswa", "ottoman", "night")
+
     fun setThemeMode(mode: String) {
-        if (mode == "kiswa" && !requirePremium()) return
+        if (mode in proThemes && !requirePremium()) return
         prefs.themeMode = mode
         _uiState.update { it.copy(themeMode = mode) }
     }
@@ -946,6 +1026,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 fridayReminder = prefs.fridayReminderEnabled,
                 kandilReminder = prefs.kandilReminderEnabled,
                 dailyVerseNotification = prefs.dailyVerseNotificationEnabled,
+                sahurAlarm = prefs.sahurAlarmEnabled,
+                sahurAlarmMinutes = prefs.sahurAlarmMinutes,
+                sahurOnlyRamadan = prefs.sahurOnlyRamadan,
+                tahajjudAlarm = prefs.tahajjudAlarmEnabled,
                 notificationsAllowed = NotificationHelper.canPost(app),
                 exactAlarmAllowed = PrayerAlarmScheduler.canScheduleExact(app),
                 prayerAdjustments = prefs.getPrayerAdjustments().toList(),
@@ -965,6 +1049,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         PrayerAlarmScheduler.prayerTypes.filter { it != PrayerType.GUNES }.forEach { prefs.setNotificationPref(it, pref) }
         refreshNotificationSettings()
         rescheduleAlarms()
+    }
+
+    fun setSahurAlarm(v: Boolean) { prefs.sahurAlarmEnabled = v; refreshNotificationSettings(); rescheduleAlarms() }
+    fun setSahurAlarmMinutes(m: Int) { prefs.sahurAlarmMinutes = m; refreshNotificationSettings(); rescheduleAlarms() }
+    fun setSahurOnlyRamadan(v: Boolean) { prefs.sahurOnlyRamadan = v; refreshNotificationSettings(); rescheduleAlarms() }
+    fun setTahajjudAlarm(v: Boolean) { prefs.tahajjudAlarmEnabled = v; refreshNotificationSettings(); rescheduleAlarms() }
+
+    /** Uyandırma sesini 10 sn dinlet */
+    fun previewWakeTone() {
+        val i = Intent(app, com.eavisionlabs.nurvakti.notify.AdhanService::class.java)
+            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_TITLE, t("Uyandırma sesi"))
+            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_WAKE, true)
+            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_PREVIEW, true)
+        runCatching { androidx.core.content.ContextCompat.startForegroundService(app, i) }
     }
 
     fun setPreReminderMinutes(m: Int) {
@@ -1081,6 +1179,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return false
     }
 
+    private fun rewardActive(): Boolean = prefs.rewardUnlockUntil > System.currentTimeMillis()
+
+    /** Ödüllü reklam izlendi: 24 saat Pro özellikleri açık */
+    fun grantRewardTrial() {
+        val until = System.currentTimeMillis() + com.eavisionlabs.nurvakti.ads.AdsManager.REWARD_DURATION_MS
+        prefs.rewardUnlockUntil = until
+        _uiState.update { it.copy(isPremiumActive = true, rewardUntil = until) }
+        showMessage(t("Teşekkürler! Pro özellikleri 24 saat boyunca açık."))
+    }
+
+    private fun onRewardExpired() {
+        _uiState.update { it.copy(isPremiumActive = it.isPaidPremium, rewardUntil = 0L) }
+        prefs.rewardUnlockUntil = 0L
+        if (!_uiState.value.isPaidPremium && prefs.themeMode in proThemes) setThemeMode("dark")
+    }
+
+    /** Olumlu an (hedef tamamlandı, cüz bitti, beş vakit kılındı): uygunsa değerlendirme iste */
+    private fun positiveMoment() {
+        prefs.positiveMoments = prefs.positiveMoments + 1
+        if (prefs.reviewRequested) return
+        val installed = runCatching { app.packageManager.getPackageInfo(app.packageName, 0).firstInstallTime }.getOrDefault(System.currentTimeMillis())
+        if (System.currentTimeMillis() - installed < 3L * 24 * 60 * 60_000L) return
+        if (prefs.positiveMoments < 3) return
+        _events.tryEmit(UiEvent.AskReview)
+    }
+
+    fun markReviewRequested() { prefs.reviewRequested = true }
+
+    fun setKazaPerDay(n: Int) {
+        val v = n.coerceIn(1, 10)
+        prefs.kazaPerDay = v
+        _uiState.update { it.copy(kazaPerDay = v) }
+    }
+
     fun purchase(activity: Activity, plan: String) {
         val id = when (plan) {
             "monthly" -> BillingManager.SUB_MONTHLY
@@ -1133,11 +1265,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         triggerHaptic()
     }
 
-    private fun triggerHaptic(isTargetReached: Boolean = false) {
+    private fun triggerHaptic(isTargetReached: Boolean = false, milestone: Boolean = false) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (isTargetReached) vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 100, 50, 150), -1))
-                else vibrator.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
+                when {
+                    isTargetReached -> vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 120, 60, 120, 60, 260), -1))
+                    // Her 33'te iki kısa titreşim
+                    milestone -> vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 60, 70, 60), -1))
+                    else -> vibrator.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
+                }
             } else {
                 @Suppress("DEPRECATION")
                 vibrator.vibrate(if (isTargetReached) 200 else 30)

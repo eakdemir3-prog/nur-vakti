@@ -39,6 +39,15 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import android.graphics.Bitmap
+import android.view.KeyEvent
+import androidx.core.content.FileProvider
+import com.eavisionlabs.nurvakti.ads.AdsManager
+import com.eavisionlabs.nurvakti.ui.UiEvent
+import com.google.android.play.core.review.ReviewManagerFactory
+import kotlinx.coroutines.launch
 import com.eavisionlabs.nurvakti.data.UserPreferences
 import com.eavisionlabs.nurvakti.i18n.t
 import com.eavisionlabs.nurvakti.ui.AppScreen
@@ -53,9 +62,19 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val EXTRA_OPEN_SCREEN = "open_screen"
         const val PRIVACY_URL = "https://eakdemir3-prog.github.io/fitnex-legal/nurvakti/gizlilik.html"
+        const val PLAY_URL = "https://play.google.com/store/apps/details?id=com.aistudio.nurvakti.app"
     }
 
     private val viewModel: MainViewModel by viewModels()
+
+    /** Arka plana geçiş zamanı (açılış reklamı için) */
+    private var backgroundAt = 0L
+    /** Paylaşım, harita, ayarlar gibi dış ekranlara gidildiyse bu zamana kadar açılış reklamı yok */
+    private var suppressAppOpenUntil = 0L
+    /** Paylaşımdan dönünce reklam molası */
+    private var pendingAdBreak = false
+
+    fun markExternalLaunch() { suppressAppOpenUntil = System.currentTimeMillis() + 10 * 60_000L }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -63,6 +82,17 @@ class MainActivity : ComponentActivity() {
         val coldStart = savedInstanceState == null
         enableEdgeToEdge()
         handleIntent(intent)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { e ->
+                    when (e) {
+                        UiEvent.AdBreak -> AdsManager.maybeShowInterstitial(this@MainActivity)
+                        UiEvent.AskReview -> askForReview()
+                    }
+                }
+            }
+        }
 
         setContent {
             val uiState by viewModel.uiState.collectAsState()
@@ -89,8 +119,80 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (viewModel.uiState.value.isOnboardingComplete) AdsManager.init(this)
+        val now = System.currentTimeMillis()
+        if (pendingAdBreak) {
+            pendingAdBreak = false
+            AdsManager.maybeShowInterstitial(this)
+        } else if (backgroundAt > 0L && now - backgroundAt > 30_000L && now > suppressAppOpenUntil) {
+            AdsManager.maybeShowAppOpen(this)
+        }
+        backgroundAt = 0L
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations && !AdsManager.isShowingFullScreen) backgroundAt = System.currentTimeMillis()
+    }
+
+    /** Tesbih ekranında ses tuşlarıyla zikir */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_VOLUME_UP || event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            val st = viewModel.uiState.value
+            if (st.currentScreen == AppScreen.TASBIH && st.tasbihVolumeKeys) {
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) viewModel.onVolumeKeyDhikr()
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun askForReview() {
+        viewModel.markReviewRequested()
+        val manager = ReviewManagerFactory.create(this)
+        manager.requestReviewFlow().addOnCompleteListener { task ->
+            if (task.isSuccessful && !isFinishing) {
+                markExternalLaunch()
+                manager.launchReviewFlow(this, task.result)
+            }
+        }
+    }
+
+    fun watchRewardedAd() {
+        val shown = AdsManager.showRewarded(this) { viewModel.grantRewardTrial() }
+        if (!shown) viewModel.showMessage(t("Reklam şu an hazır değil, birazdan tekrar deneyin."))
+    }
+
+    /** Görsel kartı (JPEG) paylaşır */
+    fun shareImage(bitmap: Bitmap) {
+        try {
+            val dir = java.io.File(cacheDir, "share").apply { mkdirs() }
+            dir.listFiles()?.forEach { it.delete() }
+            val file = java.io.File(dir, "nurvakti_${System.currentTimeMillis()}.jpg")
+            file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+            val uri = FileProvider.getUriForFile(this, "$packageName.files", file)
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "image/jpeg"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_TEXT, t("NurVakti ile hazırlandı") + " • " + PLAY_URL)
+                clipData = android.content.ClipData.newRawUri("NurVakti", uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            markExternalLaunch()
+            pendingAdBreak = true
+            startActivity(Intent.createChooser(send, t("Paylaş")))
+        } catch (_: Exception) {
+            pendingAdBreak = false
+            Toast.makeText(this, t("Paylaşım uygulaması bulunamadı."), Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun handleIntent(intent: Intent?) {
         val screen = intent?.getStringExtra(EXTRA_OPEN_SCREEN) ?: return
+        // Bildirim / widget'tan açılışta açılış reklamı gösterilmez
+        suppressAppOpenUntil = System.currentTimeMillis() + 60_000L
         viewModel.openFromIntent(screen)
         intent.removeExtra(EXTRA_OPEN_SCREEN)
     }
@@ -100,6 +202,7 @@ class MainActivity : ComponentActivity() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
+        markExternalLaunch()
         try {
             startActivity(Intent.createChooser(send, t("Paylaş")))
         } catch (_: Exception) {
@@ -108,6 +211,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun findMosques() {
+        markExternalLaunch()
         val city = viewModel.uiState.value.selectedCity
         val geo = Intent(Intent.ACTION_VIEW, Uri.parse("geo:${city.latitude},${city.longitude}?q=${Uri.encode(t("cami"))}"))
         try {
@@ -124,6 +228,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun openUrl(url: String) {
+        markExternalLaunch()
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (_: Exception) {
@@ -132,6 +237,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun openExactAlarmSettings() {
+        markExternalLaunch()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             try {
                 startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName")))
@@ -142,6 +248,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun openAppNotificationSettings() {
+        markExternalLaunch()
         val i = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
         } else {
@@ -346,12 +453,13 @@ fun NurVaktiApp(
                     onRequestNotifications = { requestNotifications() },
                     onRequestExactAlarm = { activity.openExactAlarmSettings() },
                     onOpenSystemNotificationSettings = { activity.openAppNotificationSettings() },
-                    onPickAdhan = { adhanPicker.launch(arrayOf("audio/*")) },
-                    onExport = { exportLauncher.launch("nurvakti-yedek-${UserPreferences.dayKey()}.json") },
-                    onImport = { importLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
+                    onPickAdhan = { activity.markExternalLaunch(); adhanPicker.launch(arrayOf("audio/*")) },
+                    onExport = { activity.markExternalLaunch(); exportLauncher.launch("nurvakti-yedek-${UserPreferences.dayKey()}.json") },
+                    onImport = { activity.markExternalLaunch(); importLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
                     onOpenPrivacy = { activity.openUrl(MainActivity.PRIVACY_URL) },
                     onOpenCityPicker = { viewModel.setCityPickerVisible(true) },
-                    onAutoDetectLocation = { requestLocationAction() }
+                    onAutoDetectLocation = { requestLocationAction() },
+                    onAdPrivacy = if (AdsManager.privacyOptionsRequired(context)) ({ AdsManager.showPrivacyOptions(activity) }) else null
                 )
 
                 AppScreen.PRAYER_TRACKER -> PrayerTrackerScreen(
@@ -364,8 +472,9 @@ fun NurVaktiApp(
                 AppScreen.PREMIUM -> PremiumScreen(
                     uiState = uiState,
                     onBack = { viewModel.navigateBack() },
-                    onPurchase = { plan -> viewModel.purchase(activity, plan) },
-                    onRestore = { viewModel.restorePurchases() }
+                    onPurchase = { plan -> activity.markExternalLaunch(); viewModel.purchase(activity, plan) },
+                    onRestore = { viewModel.restorePurchases() },
+                    onWatchReward = if (AdsManager.isConfigured) ({ activity.watchRewardedAd() }) else null
                 )
 
                 AppScreen.QURAN_READER -> QuranReaderScreen(
@@ -402,7 +511,8 @@ fun NurVaktiApp(
                     onSetAddDialogOpen = { viewModel.setAddCustomDhikrDialogOpen(it) },
                     onAddCustom = { title, arabic, meaning, target -> viewModel.addCustomDhikr(title, arabic, meaning, target) },
                     onRemoveCustom = { viewModel.removeCustomDhikr(it) },
-                    onSetVibration = { viewModel.setTasbihVibration(it) }
+                    onSetVibration = { viewModel.setTasbihVibration(it) },
+                    onSetVolumeKeys = { viewModel.setTasbihVolumeKeys(it) }
                 )
 
                 AppScreen.DUAS -> DuasScreen(
@@ -426,7 +536,9 @@ fun NurVaktiApp(
                     onToggleJuz = { viewModel.toggleJuzCompleted(it) },
                     onNavigateZakat = { viewModel.navigateTo(AppScreen.ZAKAT_CALCULATOR) },
                     onOpenJuz = { viewModel.openJuz(it) },
-                    onShare = { activity.share(it) }
+                    onShare = { activity.share(it) },
+                    onShareImage = { activity.shareImage(it) },
+                    onOpenPremium = { viewModel.navigateTo(AppScreen.PREMIUM) }
                 )
 
                 AppScreen.ZAKAT_CALCULATOR -> ZakatCalculatorScreen(
@@ -441,7 +553,14 @@ fun NurVaktiApp(
                     uiState = uiState,
                     onBack = { viewModel.navigateBack() },
                     onUpdateKaza = { type, delta -> viewModel.updateKazaCount(type, delta) },
-                    onAddBulkKazaDays = { days -> viewModel.addBulkKazaDays(days) }
+                    onAddBulkKazaDays = { days -> viewModel.addBulkKazaDays(days) },
+                    onSetKazaPerDay = { viewModel.setKazaPerDay(it) }
+                )
+
+                AppScreen.TOPICS -> TopicsScreen(
+                    onBack = { viewModel.navigateBack() },
+                    onOpenAyah = { s, a -> viewModel.openAyah(s, a) },
+                    onShare = { activity.share(it) }
                 )
 
                 else -> HomeScreen(
@@ -455,7 +574,8 @@ fun NurVaktiApp(
                     onContinueReading = { viewModel.continueReading() },
                     onShare = { activity.share(it) },
                     onFindMosques = { activity.findMosques() },
-                    onEnableNotifications = { requestNotifications() }
+                    onEnableNotifications = { requestNotifications() },
+                    onShareImage = { activity.shareImage(it) }
                 )
             }
         }
@@ -484,7 +604,8 @@ fun NurVaktiApp(
             onPlayPrevious = { viewModel.audioPlayerManager.playPrevious() },
             onSetSpeed = { viewModel.setAudioPlaybackSpeed(it) },
             onSetSleepTimer = { viewModel.setAudioSleepTimer(it) },
-            onDismiss = { viewModel.setAudioSheetExpanded(false) }
+            onDismiss = { viewModel.setAudioSheetExpanded(false) },
+            onSetReciter = { viewModel.setSurahReciter(it) }
         )
     }
 

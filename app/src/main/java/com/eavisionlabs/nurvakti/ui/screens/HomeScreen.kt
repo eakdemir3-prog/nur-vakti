@@ -48,6 +48,7 @@ fun HomeScreen(
     onShare: (String) -> Unit = {},
     onFindMosques: () -> Unit = {},
     onEnableNotifications: () -> Unit = {},
+    onShareImage: (android.graphics.Bitmap) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val schedule = uiState.prayerSchedule
@@ -55,8 +56,25 @@ fun HomeScreen(
     val isFriday = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
     var greetingSheet by remember { mutableStateOf<Pair<String, List<String>>?>(null) }
 
+    var cardRequest by remember { mutableStateOf<CardRequest?>(null) }
+
     greetingSheet?.let { (title, list) ->
-        GreetingMessagesSheet(title = title, messages = list, onShare = onShare, onDismiss = { greetingSheet = null })
+        GreetingMessagesSheet(
+            title = title, messages = list, onShare = onShare,
+            onCreateCard = { msg ->
+                greetingSheet = null
+                cardRequest = CardRequest(title, msg, null, null, "$msg\n\n— NurVakti")
+            },
+            onDismiss = { greetingSheet = null }
+        )
+    }
+    cardRequest?.let { r ->
+        com.eavisionlabs.nurvakti.ui.components.ShareCardSheet(
+            initialTitle = r.title, body = r.body, arabic = r.arabic, reference = r.reference, shareText = r.text,
+            onShareImage = { bmp -> cardRequest = null; onShareImage(bmp) },
+            onShareText = { txt -> cardRequest = null; onShare(txt) },
+            onDismiss = { cardRequest = null }
+        )
     }
 
     LazyColumn(
@@ -664,7 +682,7 @@ fun HomeScreen(
                     arabic = v.arabic,
                     text = v.text,
                     onClick = { onOpenAyah(v.surah, v.ayah) },
-                    onShare = { onShare("${v.arabic}\n\n\"${v.text}\"\n\n(${v.reference} • NurVakti)") }
+                    onShare = { cardRequest = CardRequest(t("Günün Ayeti"), v.text, v.arabic, v.reference, "${v.arabic}\n\n\"${v.text}\"\n\n(${v.reference} • NurVakti)") }
                 )
             }
         }
@@ -678,7 +696,7 @@ fun HomeScreen(
                     arabic = null,
                     text = h.text,
                     onClick = null,
-                    onShare = { onShare("\"${h.text}\"\n(${h.source})\n\n— NurVakti") }
+                    onShare = { cardRequest = CardRequest(t("Günün Hadisi"), h.text, null, h.source, "\"${h.text}\"\n(${h.source})\n\n— NurVakti") }
                 )
             }
         }
@@ -692,7 +710,7 @@ fun HomeScreen(
                     arabic = d.arabicText,
                     text = d.meaningTr,
                     onClick = { onNavigate(AppScreen.DUAS) },
-                    onShare = { onShare("${d.titleTr}\n\n${d.arabicText}\n\n${d.pronunciationTr}\n\n${d.meaningTr}\n(${d.source})\n\n— NurVakti") }
+                    onShare = { cardRequest = CardRequest(d.titleTr, d.meaningTr, d.arabicText.takeIf { it.length < 260 }, d.source, "${d.titleTr}\n\n${d.arabicText}\n\n${d.pronunciationTr}\n\n${d.meaningTr}\n(${d.source})\n\n— NurVakti") }
                 )
             }
         }
@@ -767,16 +785,25 @@ private fun GreetingMessagesSheet(
     title: String,
     messages: List<String>,
     onShare: (String) -> Unit,
+    onCreateCard: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surface) {
-        GreetingMessagesList(title, messages, onShare)
+        GreetingMessagesList(title, messages, onCreateCard, onShare)
     }
 }
 
+/** Görsel kart isteği */
+private data class CardRequest(val title: String, val body: String, val arabic: String?, val reference: String?, val text: String)
+
 /** Tebrik mesajları listesi (her mesajda paylaş ve kopyala) */
 @Composable
-internal fun GreetingMessagesList(title: String, messages: List<String>, onShare: (String) -> Unit) {
+internal fun GreetingMessagesList(
+    title: String,
+    messages: List<String>,
+    onCreateCard: ((String) -> Unit)? = null,
+    onShare: (String) -> Unit
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
         Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
             Text(
@@ -786,7 +813,7 @@ internal fun GreetingMessagesList(title: String, messages: List<String>, onShare
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
             Text(
-                t("Bir mesajı paylaşın ya da kopyalayın"),
+                t("Bir mesajı görsel kart olarak, metin olarak paylaşın ya da kopyalayın"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
@@ -811,6 +838,11 @@ internal fun GreetingMessagesList(title: String, messages: List<String>, onShare
                                 modifier = Modifier.weight(1f)
                             )
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                if (onCreateCard != null) {
+                                    IconButton(onClick = { onCreateCard(msg) }) {
+                                        Icon(Icons.Default.Image, contentDescription = t("Görsel kart"), tint = GoldChampagne)
+                                    }
+                                }
                                 IconButton(onClick = { onShare("$msg\n\n— NurVakti") }) {
                                     Icon(Icons.Default.Share, contentDescription = t("Paylaş"), tint = GoldChampagne)
                                 }

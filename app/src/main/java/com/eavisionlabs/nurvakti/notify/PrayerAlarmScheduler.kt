@@ -24,7 +24,7 @@ object PrayerAlarmScheduler {
     const val ACTION_ALARM = "com.eavisionlabs.nurvakti.ACTION_PRAYER_ALARM"
     private const val REQUEST_CODE = 4242
 
-    enum class Kind { PRAYER, PRE_REMINDER, FRIDAY, KANDIL, DAILY_VERSE, REFRESH }
+    enum class Kind { PRAYER, PRE_REMINDER, FRIDAY, KANDIL, DAILY_VERSE, REFRESH, SAHUR, TAHAJJUD }
 
     data class Event(val time: Long, val kind: Kind, val prayerIndex: Int = -1)
 
@@ -65,6 +65,28 @@ object PrayerAlarmScheduler {
                 }
                 if (pre > 0 && pref != NotificationPreference.DISABLED && prayerTypes[i] != PrayerType.GUNES) {
                     events += Event(time - pre * 60_000L, Kind.PRE_REMINDER, i)
+                }
+            }
+
+            // Sahur alarmı: imsaktan N dakika önce (varsayılan yalnızca Ramazan'da)
+            if (prefs.sahurAlarmEnabled) {
+                val isRamadanDay = PrayerCalculationEngine.hijriParts(day).second == 9
+                if (isRamadanDay || !prefs.sahurOnlyRamadan) {
+                    events += Event(times[0] - prefs.sahurAlarmMinutes * 60_000L, Kind.SAHUR)
+                }
+            }
+            // Teheccüd: gecenin son üçte biri (önceki akşamdan bu imsaka)
+            if (prefs.tahajjudAlarmEnabled) {
+                val prev = Calendar.getInstance(tz).apply { timeInMillis = day.timeInMillis; add(Calendar.DAY_OF_MONTH, -1) }
+                val prevMaghrib = PrayerCalculationEngine.timesForDate(city, prev)[4]
+                val night = times[0] - prevMaghrib
+                if (night > 0) {
+                    val t = times[0] - night / 3
+                    // Sahur alarmıyla çakışmasın (30 dk'dan yakınsa teheccüdü atla)
+                    val sahur = times[0] - prefs.sahurAlarmMinutes * 60_000L
+                    if (!prefs.sahurAlarmEnabled || kotlin.math.abs(sahur - t) > 30 * 60_000L) {
+                        events += Event(t - t % 60_000L, Kind.TAHAJJUD)
+                    }
                 }
             }
 
@@ -120,6 +142,7 @@ object PrayerAlarmScheduler {
         }
         CountdownNotifier.update(ctx)
         NextPrayerWidget.updateAll(ctx)
+        runCatching { VerseWidget.updateAll(ctx) }
     }
 
     fun canScheduleExact(context: Context): Boolean {

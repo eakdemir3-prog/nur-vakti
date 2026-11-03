@@ -42,7 +42,8 @@ fun SettingsScreen(
     onImport: () -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenCityPicker: () -> Unit,
-    onAutoDetectLocation: () -> Unit
+    onAutoDetectLocation: () -> Unit,
+    onAdPrivacy: (() -> Unit)? = null
 ) {
     var editingPrayer by remember { mutableStateOf<PrayerType?>(null) }
     var showAdjustments by remember { mutableStateOf(false) }
@@ -140,7 +141,7 @@ fun SettingsScreen(
                     Text(t("Vakitten önce hatırlat"), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(6.dp))
                     ChoiceChips(
-                        options = listOf(0 to t("Kapalı"), 5 to "5 dk", 10 to "10 dk", 15 to "15 dk", 30 to "30 dk", 45 to "45 dk"),
+                        options = listOf(0 to t("Kapalı"), 5 to "5 dk", 10 to "10 dk", 15 to "15 dk", 20 to "20 dk", 30 to "30 dk", 45 to "45 dk", 60 to "60 dk"),
                         selected = uiState.preReminderMinutes,
                         onSelect = { viewModel.setPreReminderMinutes(it) }
                     )
@@ -180,6 +181,38 @@ fun SettingsScreen(
                     ToggleRow(t("Cuma hatırlatması"), t("Cuma namazından 1 saat önce"), Icons.Default.Mosque, uiState.fridayReminder) { viewModel.setFridayReminder(it) }
                     ToggleRow(t("Kandil ve dini günler"), t("Kandil gecesi ve bayram sabahı"), Icons.Default.NightsStay, uiState.kandilReminder) { viewModel.setKandilReminder(it) }
                     ToggleRow(t("Günün ayeti"), t("Her sabah bir ayet-i kerime"), Icons.Default.AutoStories, uiState.dailyVerseNotification) { viewModel.setDailyVerseNotification(it) }
+                }
+            }
+
+            // --- Sahur & teheccüd alarmı ----------------------------------
+            item { SectionTitle(t("Sahur ve Teheccüd Alarmı")) }
+            item {
+                NurCard {
+                    ToggleRow(
+                        t("Sahur alarmı"),
+                        String.format(t("İmsaktan %d dakika önce huzurlu ney sesiyle uyandırır"), uiState.sahurAlarmMinutes),
+                        Icons.Default.Alarm, uiState.sahurAlarm
+                    ) { viewModel.setSahurAlarm(it) }
+                    if (uiState.sahurAlarm) {
+                        ChoiceChips(
+                            options = listOf(30 to "30 dk", 45 to "45 dk", 60 to "60 dk", 90 to "90 dk"),
+                            selected = uiState.sahurAlarmMinutes,
+                            onSelect = { viewModel.setSahurAlarmMinutes(it) }
+                        )
+                        ToggleRow(
+                            t("Yalnızca Ramazan'da"),
+                            if (uiState.sahurOnlyRamadan) t("Ramazan dışında çalmaz") else t("Her gün çalar (nafile oruç için)"),
+                            Icons.Default.NightlightRound, uiState.sahurOnlyRamadan
+                        ) { viewModel.setSahurOnlyRamadan(it) }
+                    }
+                    ToggleRow(
+                        t("Teheccüd alarmı"),
+                        t("Gecenin son üçte biri başladığında"),
+                        Icons.Default.Bedtime, uiState.tahajjudAlarm
+                    ) { viewModel.setTahajjudAlarm(it) }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { viewModel.previewWakeTone() }) { Text(t("Sesi dinle")) }
+                    }
                 }
             }
 
@@ -228,7 +261,8 @@ fun SettingsScreen(
                     Spacer(Modifier.height(6.dp))
                     ChoiceChips(
                         options = listOf(
-                            "system" to t("Sistem"), "dark" to t("Gece Zümrüdü"), "light" to t("Fildişi (Açık)"), "kiswa" to t("Kâbe Örtüsü")
+                            "system" to t("Sistem"), "dark" to t("Gece Zümrüdü"), "light" to t("Fildişi (Açık)"),
+                            "kiswa" to t("Kâbe Örtüsü"), "ottoman" to t("Osmanlı Bordosu"), "night" to t("Gece Mavisi")
                         ),
                         selected = uiState.themeMode,
                         onSelect = { viewModel.setThemeMode(it) }
@@ -262,7 +296,8 @@ fun SettingsScreen(
             item {
                 NurCard {
                     Text(
-                        t("Ayarlarınızı, namaz ve zikir kayıtlarınızı, yer imlerinizi ve kaza sayılarınızı bir dosyaya kaydedip yeni telefonda geri yükleyebilirsiniz."),
+                        t("Ayarlarınızı, namaz ve zikir kayıtlarınızı, yer imlerinizi ve kaza sayılarınızı bir dosyaya kaydedip yeni telefonda geri yükleyebilirsiniz.") + " " +
+                            t("Ayrıca Android'in Google hesabı yedeklemesi açıksa verileriniz yeni telefona otomatik taşınır."),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(6.dp))
@@ -275,9 +310,12 @@ fun SettingsScreen(
             item { SectionTitle(t("Hakkında")) }
             item {
                 NurCard {
-                    SettingRow(t("NurVakti Pro"), if (uiState.isPremiumActive) t("Aktif") else t("Ayrıcalıkları keşfedin"), Icons.Default.WorkspacePremium,
+                    SettingRow(t("NurVakti Pro"), if (uiState.isPaidPremium) t("Aktif") else if (uiState.isPremiumActive) t("24 saatlik deneme açık") else t("Ayrıcalıkları keşfedin"), Icons.Default.WorkspacePremium,
                         onClick = { viewModel.navigateTo(AppScreen.PREMIUM) })
                     SettingRow(t("Gizlilik Politikası"), null, Icons.Default.PrivacyTip, onClick = onOpenPrivacy)
+                    if (onAdPrivacy != null) {
+                        SettingRow(t("Reklam gizlilik seçenekleri"), t("Kişiselleştirilmiş reklam onayınızı değiştirin"), Icons.Default.Shield, onClick = onAdPrivacy)
+                    }
                     SettingRow(
                         t("Kaynaklar"),
                         t("Meal: Diyanet İşleri Başkanlığı (tanzil.net) • Arapça metin: Kur'an Ansiklopedisi • Yazı tipi: Amiri Quran (SIL OFL) • Ses: mp3quran.net, everyayah.com"),

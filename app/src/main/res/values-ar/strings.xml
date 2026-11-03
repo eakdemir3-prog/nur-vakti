@@ -1,4 +1,6 @@
 <resources>
     <string name="widget_name">نور وقتي – الصلاة القادمة</string>
     <string name="widget_description">الوقت المتبقي للصلاة القادمة ومواقيت اليوم</string>
+    <string name="verse_widget_name">آية اليوم – نور وقتي</string>
+    <string name="verse_widget_description">آية كريمة جديدة كل يوم مع معناها</string>
 </resources>

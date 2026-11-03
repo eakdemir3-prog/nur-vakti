@@ -68,12 +68,7 @@ class AudioPlayerManager(private val context: Context) {
     fun playSurah(surahNumber: Int, reciterKey: String? = null) {
         val surah = QuranRepository.surahs.find { it.number == surahNumber } ?: return
         val reciter = reciterKey ?: _playerState.value.currentReciterKey
-        val reciterName = when (reciter) {
-            "abdulbaset" -> "AbdulBaset AbdulSamad"
-            "maher" -> "Maher Al-Muaiqly"
-            "ghamdi" -> "Saad Al-Ghamdi"
-            else -> "Mishary Rashid Alafasy"
-        }
+        val reciterName = QuranRepository.surahReciters.firstOrNull { it.first == reciter }?.second ?: "Mishary Rashid Alafasy"
 
         stop()
         ayahQueue = emptyList()

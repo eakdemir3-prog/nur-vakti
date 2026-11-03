@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,6 +47,7 @@ fun TasbihScreen(
     onAddCustom: (String, String, String, Int) -> Unit = { _, _, _, _ -> },
     onRemoveCustom: (String) -> Unit = {},
     onSetVibration: (Boolean) -> Unit = {},
+    onSetVolumeKeys: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showHistory by remember { mutableStateOf(false) }
@@ -69,13 +72,20 @@ fun TasbihScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(t("Dijital Tesbih"), fontWeight = FontWeight.Bold, color = GoldLight) },
+                title = { Text(t("Dijital Tesbih"), fontWeight = FontWeight.Bold, color = GoldLight, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("Geri"), tint = GoldChampagne)
                     }
                 },
                 actions = {
+                    IconButton(onClick = { onSetVolumeKeys(!uiState.tasbihVolumeKeys) }) {
+                        Icon(
+                            if (uiState.tasbihVolumeKeys) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeOff,
+                            contentDescription = t("Ses tuşlarıyla zikir"),
+                            tint = if (uiState.tasbihVolumeKeys) GoldChampagne else SoftGrey
+                        )
+                    }
                     IconButton(onClick = { onSetVibration(!uiState.tasbihVibration) }) {
                         Icon(
                             if (uiState.tasbihVibration) Icons.Default.Vibration else Icons.Default.PhonelinkErase,

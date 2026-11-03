@@ -269,7 +269,12 @@ object QuranRepository {
         "alafasy" to "Mishary Rashid Alafasy",
         "abdulbaset" to "Abdulbasit Abdussamed",
         "maher" to "Maher el-Muaykılî",
-        "ghamdi" to "Sa'd el-Ğâmidî"
+        "ghamdi" to "Sa'd el-Ğâmidî",
+        "sudais" to "Abdurrahman es-Sudeys",
+        "shuraim" to "Suud eş-Şureym",
+        "husary" to "Mahmud Halil el-Husarî",
+        "minshawi" to "Muhammed Sıddık el-Minşâvî",
+        "dosari" to "Yasir ed-Devserî"
     )
 
     fun getSurahAudioUrl(surahNumber: Int, reciterKey: String = "alafasy"): String {
@@ -278,6 +283,11 @@ object QuranRepository {
             "abdulbaset" -> "https://server7.mp3quran.net/basit/$n.mp3"
             "maher" -> "https://server12.mp3quran.net/maher/$n.mp3"
             "ghamdi" -> "https://server8.mp3quran.net/ghamdi/$n.mp3"
+            "sudais" -> "https://server11.mp3quran.net/sds/$n.mp3"
+            "shuraim" -> "https://server7.mp3quran.net/shur/$n.mp3"
+            "husary" -> "https://server13.mp3quran.net/husr/$n.mp3"
+            "minshawi" -> "https://server10.mp3quran.net/minsh/$n.mp3"
+            "dosari" -> "https://server11.mp3quran.net/yasser/$n.mp3"
             else -> "https://server8.mp3quran.net/afs/$n.mp3"
         }
     }

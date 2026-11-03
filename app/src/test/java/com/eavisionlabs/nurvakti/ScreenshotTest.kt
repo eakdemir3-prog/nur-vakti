@@ -114,6 +114,39 @@ class ScreenshotTest {
     @Test fun explore() { val s = state(); shot("11_explore") { ExploreScreen(s, {}) } }
     @Test fun tasbih_light() { val s = state(); shot("12_tasbih_light", "light") { TasbihScreen(s, {}, {}, {}, {}, {}, {}, { _, _, _, _ -> }) } }
 
+    @Test fun topics() { shot("13_topics") { TopicsScreen({}, { _, _ -> }, {}) } }
+    @Test fun premium_reward() {
+        val s = state().copy(rewardedAdReady = true)
+        shot("14_premium_reward") { PremiumScreen(s, {}, {}, {}, onWatchReward = {}) }
+    }
+    @Test fun kaza_plan() {
+        val s = state().copy(kazaSabah = 400, kazaOgle = 380, kazaIkindi = 380, kazaAksam = 390, kazaYatsi = 400, kazaVitir = 400, kazaPerDay = 2)
+        shot("15_kaza_plan") { KazaNamazScreen(s, {}, { _, _ -> }, {}) }
+    }
+    @Test fun home_ottoman() { val s = state(); shot("16_home_ottoman", "ottoman") { HomeScreen(s, {}, {}, {}) } }
+    @Test fun home_night() { val s = state(); shot("17_home_night", "night") { HomeScreen(s, {}, {}, {}) } }
+    @Test fun share_cards() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        QuranRepository.init(app)
+        val dir = File("build/screenshots").apply { mkdirs() }
+        try {
+            val msgs = DailyContent.greetings(null, "Hayırlı Cumalar")
+            com.eavisionlabs.nurvakti.share.ShareCardRenderer.styles.forEachIndexed { i, st ->
+                val bmp = com.eavisionlabs.nurvakti.share.ShareCardRenderer.renderCard(app, st, "Hayırlı Cumalar", msgs[i % msgs.size])
+                File(dir, "40_card_${st.id}.png").outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            }
+            val v = DailyContent.verse(app, 13, 28)!!
+            val vb = com.eavisionlabs.nurvakti.share.ShareCardRenderer.renderCard(app, com.eavisionlabs.nurvakti.share.ShareCardRenderer.styles[1], "Günün Ayeti", v.text, v.arabic, v.reference)
+            File(dir, "41_card_verse.png").outputStream().use { vb.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            val start = java.util.Calendar.getInstance().apply { set(2027, 1, 8) }
+            val days = PrayerCalculationEngine.scheduleForRange(CityProvider.defaultCity, start, 30)
+            val ib = com.eavisionlabs.nurvakti.share.ShareCardRenderer.renderImsakiye(app, com.eavisionlabs.nurvakti.share.ShareCardRenderer.styles[0], "İstanbul", "1448 Ramazan-ı Şerif", days)
+            File(dir, "42_imsakiye.png").outputStream().use { ib.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        } catch (e: Throwable) {
+            File(dir, "40_cards.error.txt").writeText(e.stackTraceToString())
+        }
+    }
+
     @Test fun intro_frames() {
         compose.mainClock.autoAdvance = false
         compose.setContent { com.eavisionlabs.nurvakti.ui.components.IntroAnimation(onFinished = {}) }

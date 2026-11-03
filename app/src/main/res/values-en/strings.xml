@@ -1,4 +1,6 @@
 <resources>
     <string name="widget_name">NurVakti – Next Prayer</string>
     <string name="widget_description">Time left to the next prayer and today\'s prayer times</string>
+    <string name="verse_widget_name">Verse of the Day – NurVakti</string>
+    <string name="verse_widget_description">A new Quran verse with its meaning every day</string>
 </resources>

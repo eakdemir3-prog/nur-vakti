@@ -59,6 +59,8 @@ private fun schemeFor(p: NurPalette): ColorScheme = if (p.isDark) darkColorSchem
 fun paletteFor(themeMode: String, systemDark: Boolean): NurPalette = when (themeMode) {
     "light" -> Palettes.Light
     "kiswa" -> Palettes.Kiswa
+    "ottoman" -> Palettes.Ottoman
+    "night" -> Palettes.Night
     "system" -> if (systemDark) Palettes.Dark else Palettes.Light
     else -> Palettes.Dark
 }
