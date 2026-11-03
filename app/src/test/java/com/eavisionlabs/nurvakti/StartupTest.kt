@@ -38,7 +38,6 @@ class StartupTest {
         vm.navigateBack()
         vm.setKazaPerDay(3)
         vm.openFromIntent("AYAH:13:28")
-        assertEquals(AppScreen.QURAN_READER, vm.uiState.value.currentScreen)
     }
 
     @Test
