@@ -225,6 +225,11 @@ data class UiState(
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        /** Pro temalar (init sırasında da kullanıldığı için sınıf düzeyinde sabit) */
+        private val proThemes = setOf("kiswa", "ottoman", "night")
+    }
+
     private val app = application
     private val prefs = UserPreferences(application)
     val audioPlayerManager = AudioPlayerManager(application)
@@ -977,8 +982,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Eski profil düğmesi: koyu <-> açık */
     fun toggleAppTheme() = setThemeMode(if (_uiState.value.themeMode == "light") "dark" else "light")
-
-    private val proThemes = setOf("kiswa", "ottoman", "night")
 
     fun setThemeMode(mode: String) {
         if (mode in proThemes && !requirePremium()) return
