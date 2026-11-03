@@ -575,6 +575,7 @@ object StringsEn {
         "İmsakiyeyi görsel olarak paylaş" to "Share timetable as image",
         "İmsaktan %d dakika önce huzurlu ney sesiyle uyandırır" to "Wakes you with a calm ney tone %d minutes before Fajr",
         "Şifa" to "Healing",
+        "Reklamsız kullanım, özel temalar, hıfz modu ve aylık analizler" to "Ad-free, special themes, memorization mode and monthly insights",
         "Şükür" to "Gratitude"
     )
 }

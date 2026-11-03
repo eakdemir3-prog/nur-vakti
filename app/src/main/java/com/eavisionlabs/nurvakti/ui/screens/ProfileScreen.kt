@@ -153,7 +153,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = if (uiState.isPremiumActive) t("Pro ayrıcalıklarınız açık")
-                        else t("Kâbe Örtüsü teması, hıfz modu ve aylık analizler"),
+                        else t("Reklamsız kullanım, özel temalar, hıfz modu ve aylık analizler"),
                         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                     Spacer(modifier = Modifier.height(12.dp))

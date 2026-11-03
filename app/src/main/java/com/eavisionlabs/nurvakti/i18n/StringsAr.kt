@@ -575,6 +575,7 @@ object StringsAr {
         "İmsakiyeyi görsel olarak paylaş" to "مشاركة الإمساكية كصورة",
         "İmsaktan %d dakika önce huzurlu ney sesiyle uyandırır" to "يوقظك بصوت ناي هادئ قبل الفجر بـ %d دقيقة",
         "Şifa" to "الشفاء",
+        "Reklamsız kullanım, özel temalar, hıfz modu ve aylık analizler" to "بلا إعلانات، سمات خاصة، وضع الحفظ وتحليلات شهرية",
         "Şükür" to "الشكر"
     )
 }
