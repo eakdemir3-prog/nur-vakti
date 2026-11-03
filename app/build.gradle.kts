@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.nurvakti.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 8
-    versionName = "1.1.2"
+    versionCode = 9
+    versionName = "1.1.3"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -112,6 +112,8 @@ dependencies {
   implementation(libs.play.services.ads)
   implementation(libs.ump)
   implementation(libs.play.review)
+  // AdMob eski WorkManager 2.7 getiriyor; R8 tam modda açılışta çöküyordu. Güncel sürüme zorlanır.
+  implementation(libs.androidx.work.runtime)
 
   testImplementation(libs.junit)
   testImplementation(libs.robolectric)
