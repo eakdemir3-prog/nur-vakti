@@ -48,7 +48,8 @@ enum class AppScreen {
     SETTINGS,
     PREMIUM,
     PRAYER_TRACKER,
-    TOPICS
+    TOPICS,
+    GREETINGS
 }
 
 /** ViewModel'den Activity'ye tek seferlik olaylar */
@@ -184,6 +185,13 @@ data class UiState(
     /** Ödüllü reklamla açılan denemenin bitişi (0: yok) */
     val rewardUntil: Long = 0L,
     val rewardedAdReady: Boolean = false,
+
+    // Google hesabı ve bulut yedeği
+    val accountEmail: String? = null,
+    val accountName: String? = null,
+    val cloudAutoBackup: Boolean = true,
+    val cloudLastBackup: Long = 0L,
+    val cloudBusy: Boolean = false,
     val premiumPrices: Map<String, String> = emptyMap(),
     val premiumProduct: String? = null,
     val isPurchasing: Boolean = false,
@@ -290,6 +298,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             customDhikrs = prefs.getCustomDhikrs(),
             tasbihVibration = prefs.tasbihVibrationEnabled,
             tasbihVolumeKeys = prefs.tasbihVolumeKeys,
+            accountEmail = prefs.accountEmail,
+            accountName = prefs.accountName,
+            cloudAutoBackup = prefs.cloudAutoBackup,
+            cloudLastBackup = prefs.cloudLastBackup,
             kazaPerDay = prefs.kazaPerDay,
             completedJuzs = prefs.getHatimCompletedJuzs(),
             isPremiumActive = prefs.isPremiumActive || prefs.rewardUnlockUntil > System.currentTimeMillis(),
@@ -1209,6 +1221,108 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun markReviewRequested() { prefs.reviewRequested = true }
+
+    // ------------------------------------------------------------------
+    // Google hesabı ve bulut yedeği
+    // ------------------------------------------------------------------
+
+    fun signInWithGoogle(activity: Activity, driveToken: suspend (Boolean) -> String?) {
+        if (!com.eavisionlabs.nurvakti.account.GoogleAccount.isConfigured) {
+            showMessage(t("Google ile giriş henüz etkin değil.")); return
+        }
+        viewModelScope.launch {
+            try {
+                val info = com.eavisionlabs.nurvakti.account.GoogleAccount.signIn(activity)
+                prefs.accountId = info.id
+                prefs.accountEmail = info.email
+                prefs.accountName = info.name
+                _uiState.update { it.copy(accountEmail = info.email, accountName = info.name) }
+                billing.logIn(info.id)
+                showMessage(String.format(t("Hoş geldiniz, %s"), info.name ?: info.email))
+                // Buluttaki yedek varsa ve bu cihaz yeniyse geri yüklemeyi öner
+                val token = driveToken(true) ?: return@launch
+                val hasCloud = runCatching { com.eavisionlabs.nurvakti.account.DriveBackup.find(token) }.getOrNull()
+                if (hasCloud == null) backupToCloud(driveToken, silent = true)
+                else _uiState.update { it.copy(message = t("Bu hesapta bir bulut yedeği var. Geri yüklemek için Profil > Buluttan geri yükle.")) }
+            } catch (_: com.eavisionlabs.nurvakti.account.GoogleAccount.Cancelled) {
+            } catch (e: Exception) {
+                showMessage(t("Google ile giriş yapılamadı.") + " " + (e.message ?: ""))
+            }
+        }
+    }
+
+    fun signOutGoogle() {
+        viewModelScope.launch {
+            com.eavisionlabs.nurvakti.account.GoogleAccount.signOut(app)
+            billing.logOut()
+            prefs.clearAccount()
+            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L) }
+            showMessage(t("Hesaptan çıkış yapıldı. Kayıtlarınız bu telefonda kalmaya devam eder."))
+        }
+    }
+
+    fun setCloudAutoBackup(v: Boolean) {
+        prefs.cloudAutoBackup = v
+        _uiState.update { it.copy(cloudAutoBackup = v) }
+    }
+
+    fun backupToCloud(driveToken: suspend (Boolean) -> String?, silent: Boolean = false) {
+        if (prefs.accountEmail == null || _uiState.value.cloudBusy) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(cloudBusy = true) }
+            try {
+                val token = driveToken(!silent) ?: run { if (!silent) showMessage(t("Google Drive izni verilmedi.")); return@launch }
+                com.eavisionlabs.nurvakti.account.DriveBackup.upload(token, withContext(Dispatchers.IO) { prefs.exportJson() })
+                val now = System.currentTimeMillis()
+                prefs.cloudLastBackup = now
+                _uiState.update { it.copy(cloudLastBackup = now) }
+                if (!silent) showMessage(t("Kayıtlarınız Google Drive'a yedeklendi."))
+            } catch (e: Exception) {
+                if (!silent) showMessage(t("Buluta yedeklenemedi. İnternet bağlantınızı kontrol edin."))
+            } finally {
+                _uiState.update { it.copy(cloudBusy = false) }
+            }
+        }
+    }
+
+    /** Uygulama açıldığında günde bir kez sessiz yedek */
+    fun autoBackupIfDue(driveToken: suspend (Boolean) -> String?) {
+        if (prefs.accountEmail == null || !prefs.cloudAutoBackup) return
+        if (System.currentTimeMillis() - prefs.cloudLastBackup < 24L * 60 * 60_000L) return
+        backupToCloud(driveToken, silent = true)
+    }
+
+    fun restoreFromCloud(driveToken: suspend (Boolean) -> String?, onRestored: () -> Unit) {
+        if (prefs.accountEmail == null || _uiState.value.cloudBusy) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(cloudBusy = true) }
+            try {
+                val token = driveToken(true) ?: run { showMessage(t("Google Drive izni verilmedi.")); return@launch }
+                val json = com.eavisionlabs.nurvakti.account.DriveBackup.download(token)
+                if (json == null) { showMessage(t("Bu hesapta bulut yedeği bulunamadı.")); return@launch }
+                withContext(Dispatchers.IO) { prefs.importJson(json) }
+                showMessage(t("Yedek geri yüklendi. Uygulama yenileniyor…"))
+                onRestored()
+            } catch (e: Exception) {
+                showMessage(t("Buluttan geri yüklenemedi.") + " " + (e.message ?: ""))
+            } finally {
+                _uiState.update { it.copy(cloudBusy = false) }
+            }
+        }
+    }
+
+    /** Hesabı sil: buluttaki yedek silinir, satın alma bağlantısı ve hesap bilgisi kaldırılır */
+    fun deleteAccount(driveToken: suspend (Boolean) -> String?) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(cloudBusy = true) }
+            runCatching { driveToken(true)?.let { com.eavisionlabs.nurvakti.account.DriveBackup.delete(it) } }
+            com.eavisionlabs.nurvakti.account.GoogleAccount.signOut(app)
+            billing.logOut()
+            prefs.clearAccount()
+            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L, cloudBusy = false) }
+            showMessage(t("Hesabınız ve bulut yedeğiniz silindi. Pro aboneliğiniz Google Play'de devam eder; iptal için Play > Abonelikler."))
+        }
+    }
 
     fun setKazaPerDay(n: Int) {
         val v = n.coerceIn(1, 10)

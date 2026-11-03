@@ -212,4 +212,60 @@ object DailyContent {
         "Aşurenin bereketi sofranıza, huzuru gönlünüze olsun.",
         "Rabbim bu mübarek günün hürmetine dualarımızı kabul eylesin. Aşure gününüz mübarek olsun."
     )
+
+    /** Tebrik kartı oluşturucudaki kategoriler: (kimlik, başlık) */
+    val greetingCategories = listOf(
+        "cuma" to "Hayırlı Cumalar",
+        "kandil" to "Kandiliniz Mübarek Olsun",
+        "ramazan" to "Hayırlı Ramazanlar",
+        "ramazan_bayrami" to "Ramazan Bayramınız Mübarek Olsun",
+        "kurban_bayrami" to "Kurban Bayramınız Mübarek Olsun",
+        "sabah" to "Hayırlı Sabahlar",
+        "gece" to "Hayırlı Geceler",
+        "gecmis_olsun" to "Geçmiş Olsun"
+    )
+
+    fun greetingsFor(category: String): List<String> = when (category) {
+        "cuma" -> fridayGreetings
+        "kandil" -> kandilGreetings("Kandiliniz")
+        "ramazan" -> ramadanGreetings
+        "ramazan_bayrami" -> fitrGreetings
+        "kurban_bayrami" -> adhaGreetings
+        "sabah" -> morningGreetings
+        "gece" -> nightGreetings
+        else -> getWellGreetings
+    }
+
+    private val morningGreetings = listOf(
+        "Hayırlı sabahlar! Rabbim gününüzü huzur, bereket ve sağlıkla doldursun.",
+        "Bismillah… Güne Allah'ın adıyla başlıyoruz. Hayırlı, bereketli ve huzurlu bir gün dilerim.",
+        "Allah'ım! Bu günün hayrını, fethini, nurunu, bereketini ve hidayetini senden isteriz. Hayırlı sabahlar.",
+        "Yeni bir gün, yeni bir umut. Rabbim attığınız her adımı hayra vesile kılsın. Hayırlı sabahlar.",
+        "Sabahın serinliği gönlünüze, güneşin aydınlığı yolunuza olsun. Hayırlı sabahlar.",
+        "Rabbim bugün yüzünüzü güldürsün, kalbinizi ferahlatsın, rızkınızı bol eylesin. Hayırlı sabahlar.",
+        "Şükürle uyanılan her sabah bir nimettir. Gününüz şükür, huzur ve bereketle geçsin.",
+        "Hayırlı sabahlar! Bugün size güzel haberler, temiz dualar ve gönül ferahlığı getirsin."
+    )
+
+    private val nightGreetings = listOf(
+        "Hayırlı geceler. Rabbim uykunuzu huzurlu, yarınınızı hayırlı eylesin.",
+        "Allah'ım! Senin adınla ölür, senin adınla diriliriz. Hayırlı geceler.",
+        "Günün yorgunluğu geride kalsın; gönlünüz huzur, eviniz rahmet dolsun. Hayırlı geceler.",
+        "Rabbim bu geceyi hepimiz için af, rahmet ve şifa gecesi eylesin. Hayırlı geceler.",
+        "Dualarla uyuyun, şükürle uyanın. Allah'a emanet olun. Hayırlı geceler.",
+        "Bu gece dualarınıza bizi de katın. Rabbim tüm sevdiklerinizi korusun. Hayırlı geceler.",
+        "Yastığa başınızı koyarken kalbiniz huzurla, dilleriniz zikirle dolsun. Hayırlı geceler.",
+        "Rabbim gecenizi nurlandırsın, sabahınızı hayırlara açsın. Allah rahatlık versin."
+    )
+
+    private val getWellGreetings = listOf(
+        "Geçmiş olsun. Rabbim acil şifalar versin, sağlığınıza bir an önce kavuşun.",
+        "Allah'tan şifa diliyorum. Rabbim bu hastalığı günahlarınıza kefaret, sabrınıza ecir eylesin.",
+        "Geçmiş olsun, Rabbim size ve sevdiklerinize sağlık ve afiyet versin.",
+        "Şifayı veren Allah'tır. Rabbim derdinize derman, ağrınıza şifa versin. Geçmiş olsun.",
+        "Dualarımız sizinle. Rabbim en kısa zamanda sağlıklı günlere kavuştursun.",
+        "Allah'ım! Ey insanların Rabbi! Sıkıntıyı gider, şifa ver; şifa veren ancak Sensin. Geçmiş olsun.",
+        "Rabbim sabır, güç ve şifa versin; bu günler geride kalsın. Geçmiş olsun.",
+        "Acil şifalar dilerim. Rabbim sizi ve ailenizi her türlü dertten korusun."
+    )
 }

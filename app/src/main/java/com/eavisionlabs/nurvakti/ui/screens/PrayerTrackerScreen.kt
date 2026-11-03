@@ -68,10 +68,10 @@ fun PrayerTrackerScreen(
 
             item {
                 Spacer(Modifier.height(12.dp))
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatPill(uiState.prayerStreak.toString(), t("gün kesintisiz"), Modifier.weight(1f))
-                    StatPill(uiState.prayerWeek.sumOf { it.value }.toString(), t("bu hafta (35)"), Modifier.weight(1f))
-                    StatPill(uiState.prayerTotal30.toString(), t("son 30 gün (150)"), Modifier.weight(1f))
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    StatPill(uiState.prayerStreak.toString(), t("gün kesintisiz"), Modifier.weight(1f).fillMaxHeight())
+                    StatPill(uiState.prayerWeek.sumOf { it.value }.toString(), t("bu hafta (35)"), Modifier.weight(1f).fillMaxHeight())
+                    StatPill(uiState.prayerTotal30.toString(), t("son 30 gün (150)"), Modifier.weight(1f).fillMaxHeight())
                 }
             }
 

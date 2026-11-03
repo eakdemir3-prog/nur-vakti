@@ -45,6 +45,7 @@ import android.graphics.Bitmap
 import android.view.KeyEvent
 import androidx.core.content.FileProvider
 import com.eavisionlabs.nurvakti.ads.AdsManager
+import com.eavisionlabs.nurvakti.account.DriveBackup
 import com.eavisionlabs.nurvakti.ui.UiEvent
 import com.google.android.play.core.review.ReviewManagerFactory
 import kotlinx.coroutines.launch
@@ -73,6 +74,36 @@ class MainActivity : ComponentActivity() {
     private var suppressAppOpenUntil = 0L
     /** Paylaşımdan dönünce reklam molası */
     private var pendingAdBreak = false
+
+    // --- Google Drive izni (onay ekranı gerekirse) ---------------------
+    private var consentWaiter: kotlinx.coroutines.CompletableDeferred<String?>? = null
+    private val consentLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { r ->
+        consentWaiter?.complete(if (r.resultCode == RESULT_OK) DriveBackup.tokenFromResult(this, r.data) else null)
+        consentWaiter = null
+    }
+
+    /** Drive erişim belirteci; [interactive] ise gerekirse izin ekranını açar */
+    suspend fun driveToken(interactive: Boolean): String? =
+        when (val a = runCatching { DriveBackup.authorize(this) }.getOrNull()) {
+            is DriveBackup.Auth.Token -> a.value
+            is DriveBackup.Auth.NeedsConsent -> if (!interactive) null else {
+                val d = kotlinx.coroutines.CompletableDeferred<String?>()
+                consentWaiter = d
+                markExternalLaunch()
+                consentLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(a.sender).build())
+                d.await()
+            }
+            null -> null
+        }
+
+    fun accountActions() = AccountActions(
+        signIn = { markExternalLaunch(); viewModel.signInWithGoogle(this) { driveToken(it) } },
+        backup = { viewModel.backupToCloud({ driveToken(it) }) },
+        restore = { viewModel.restoreFromCloud({ driveToken(it) }) { recreate() } },
+        setAuto = { viewModel.setCloudAutoBackup(it) },
+        signOut = { viewModel.signOutGoogle() },
+        delete = { viewModel.deleteAccount { driveToken(it) } }
+    )
 
     fun markExternalLaunch() { suppressAppOpenUntil = System.currentTimeMillis() + 10 * 60_000L }
 
@@ -122,6 +153,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (viewModel.uiState.value.isOnboardingComplete) AdsManager.init(this)
+        viewModel.autoBackupIfDue { driveToken(it) }
         val now = System.currentTimeMillis()
         if (pendingAdBreak) {
             pendingAdBreak = false
@@ -264,6 +296,7 @@ class MainActivity : ComponentActivity() {
     } catch (_: Exception) { null }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NurVaktiApp(
     activity: MainActivity,
@@ -405,7 +438,8 @@ fun NurVaktiApp(
         snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets.safeDrawing
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        // Dış Scaffold'un bıraktığı boşluklar tüketilir; alt ekranların kendi üst çubukları durum çubuğu boşluğunu ikinci kez eklemesin
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             when (uiState.currentScreen) {
                 AppScreen.QURAN -> QuranScreen(
                     uiState = uiState,
@@ -443,7 +477,8 @@ fun NurVaktiApp(
                     onToggleTheme = { viewModel.toggleAppTheme() },
                     onOpenPremium = { viewModel.navigateTo(AppScreen.PREMIUM) },
                     onAutoDetectLocation = { requestLocationAction() },
-                    onOpenSettings = openSettings
+                    onOpenSettings = openSettings,
+                    account = activity.accountActions()
                 )
 
                 AppScreen.SETTINGS -> SettingsScreen(
@@ -459,7 +494,8 @@ fun NurVaktiApp(
                     onOpenPrivacy = { activity.openUrl(MainActivity.PRIVACY_URL) },
                     onOpenCityPicker = { viewModel.setCityPickerVisible(true) },
                     onAutoDetectLocation = { requestLocationAction() },
-                    onAdPrivacy = if (AdsManager.privacyOptionsRequired(context)) ({ AdsManager.showPrivacyOptions(activity) }) else null
+                    onAdPrivacy = if (AdsManager.privacyOptionsRequired(context)) ({ AdsManager.showPrivacyOptions(activity) }) else null,
+                    account = activity.accountActions()
                 )
 
                 AppScreen.PRAYER_TRACKER -> PrayerTrackerScreen(
@@ -555,6 +591,12 @@ fun NurVaktiApp(
                     onUpdateKaza = { type, delta -> viewModel.updateKazaCount(type, delta) },
                     onAddBulkKazaDays = { days -> viewModel.addBulkKazaDays(days) },
                     onSetKazaPerDay = { viewModel.setKazaPerDay(it) }
+                )
+
+                AppScreen.GREETINGS -> GreetingsScreen(
+                    onBack = { viewModel.navigateBack() },
+                    onShare = { activity.share(it) },
+                    onShareImage = { activity.shareImage(it) }
                 )
 
                 AppScreen.TOPICS -> TopicsScreen(

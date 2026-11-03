@@ -43,7 +43,8 @@ fun SettingsScreen(
     onOpenPrivacy: () -> Unit,
     onOpenCityPicker: () -> Unit,
     onAutoDetectLocation: () -> Unit,
-    onAdPrivacy: (() -> Unit)? = null
+    onAdPrivacy: (() -> Unit)? = null,
+    account: AccountActions? = null
 ) {
     var editingPrayer by remember { mutableStateOf<PrayerType?>(null) }
     var showAdjustments by remember { mutableStateOf(false) }
@@ -293,6 +294,12 @@ fun SettingsScreen(
 
             // --- Yedekleme --------------------------------------------------
             item { SectionTitle(t("Yedekleme")) }
+            if (account != null) {
+                item {
+                    AccountCard(uiState, account, Modifier.padding(horizontal = 16.dp))
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
             item {
                 NurCard {
                     Text(

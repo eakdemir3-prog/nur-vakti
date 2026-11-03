@@ -40,6 +40,7 @@ fun ProfileScreen(
     onOpenPremium: () -> Unit = {},
     onAutoDetectLocation: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    account: com.eavisionlabs.nurvakti.ui.components.AccountActions? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -105,6 +106,14 @@ fun ProfileScreen(
             }
 
             Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Google hesabı ve bulut yedeği
+        if (account != null) {
+            item {
+                com.eavisionlabs.nurvakti.ui.components.AccountCard(uiState, account)
+                Spacer(modifier = Modifier.height(14.dp))
+            }
         }
 
         // 2. NurVakti Pro kartı — dikey düzen, büyük yazıda da taşmaz

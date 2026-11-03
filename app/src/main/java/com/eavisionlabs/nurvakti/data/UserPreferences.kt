@@ -503,7 +503,34 @@ class UserPreferences(context: Context) {
         get() = prefs.getInt("ads_positive_moments", 0)
         set(value) = prefs.edit().putInt("ads_positive_moments", value).apply()
 
-    private fun isPrivateKey(key: String) = key.startsWith("is_premium") || key == "premium_product" || key.startsWith("ads_")
+    // ------------------------------------------------------------------
+    // Google hesabı ve bulut yedeği (yedeğe alınmaz)
+    // ------------------------------------------------------------------
+    var accountId: String?
+        get() = prefs.getString("account_id", null)
+        set(value) = prefs.edit().putString("account_id", value).apply()
+
+    var accountEmail: String?
+        get() = prefs.getString("account_email", null)
+        set(value) = prefs.edit().putString("account_email", value).apply()
+
+    var accountName: String?
+        get() = prefs.getString("account_name", null)
+        set(value) = prefs.edit().putString("account_name", value).apply()
+
+    var cloudAutoBackup: Boolean
+        get() = prefs.getBoolean("account_auto_backup", true)
+        set(value) = prefs.edit().putBoolean("account_auto_backup", value).apply()
+
+    var cloudLastBackup: Long
+        get() = prefs.getLong("account_last_backup", 0L)
+        set(value) = prefs.edit().putLong("account_last_backup", value).apply()
+
+    fun clearAccount() = prefs.edit()
+        .remove("account_id").remove("account_email").remove("account_name").remove("account_last_backup").apply()
+
+    private fun isPrivateKey(key: String) = key.startsWith("is_premium") || key == "premium_product" ||
+        key.startsWith("ads_") || key.startsWith("account_")
 
     // ------------------------------------------------------------------
     // Yedekleme

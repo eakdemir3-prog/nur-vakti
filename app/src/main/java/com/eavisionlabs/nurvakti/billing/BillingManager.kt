@@ -13,6 +13,8 @@ import com.revenuecat.purchases.PurchasesConfiguration
 import com.revenuecat.purchases.PurchasesException
 import com.revenuecat.purchases.PurchasesTransactionException
 import com.revenuecat.purchases.awaitCustomerInfo
+import com.revenuecat.purchases.awaitLogIn
+import com.revenuecat.purchases.awaitLogOut
 import com.revenuecat.purchases.awaitOfferings
 import com.revenuecat.purchases.awaitPurchase
 import com.revenuecat.purchases.awaitRestore
@@ -170,6 +172,18 @@ class BillingManager(context: Context) {
             }
         }
         return true
+    }
+
+    /** Google hesabıyla giriş: satın alımlar bu hesaba bağlanır, yeni telefonda da gelir */
+    suspend fun logIn(appUserId: String) {
+        configure(appContext)
+        if (!configured) return
+        runCatching { apply(Purchases.sharedInstance.awaitLogIn(appUserId).customerInfo) }
+    }
+
+    suspend fun logOut() {
+        if (!configured) return
+        runCatching { if (!Purchases.sharedInstance.isAnonymous) apply(Purchases.sharedInstance.awaitLogOut()) }
     }
 
     fun clearMessage() = _state.update { it.copy(message = null) }

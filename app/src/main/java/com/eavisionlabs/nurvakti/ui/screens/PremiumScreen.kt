@@ -129,7 +129,7 @@ fun PremiumScreen(
                         ProFeature(Icons.Default.Palette, t("Özel temalar"), t("Kâbe Örtüsü, Osmanlı Bordosu ve Gece Mavisi temaları."))
                         ProFeature(Icons.Default.Repeat, t("Hıfz (ezber) modu"), t("Her ayeti 3, 5 veya 10 kez tekrarlatma; Arapça metni ya da meali gizleyip kendinizi sınama."))
                         ProFeature(Icons.Default.Insights, t("Aylık ibadet analizleri"), t("Son 30 günün namaz grafiği ve ayrıntılı seri istatistikleri."))
-                        ProFeature(Icons.Default.Share, t("İmsakiye paylaşımı"), t("Bulunduğunuz yerin Ramazan imsakiyesini metin olarak paylaşın."))
+                        ProFeature(Icons.Default.Share, t("İmsakiye paylaşımı"), t("Bulunduğunuz yerin Ramazan imsakiyesini görsel ya da metin olarak paylaşın."))
                         ProFeature(Icons.Default.Favorite, t("Geliştirmeye destek"), t("NurVakti'nin geliştirilmesine ve ücretsiz kalmasına katkı sağlarsınız."))
                     }
                 }

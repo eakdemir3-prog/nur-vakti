@@ -87,6 +87,14 @@ fun ExploreScreen(
             screen = AppScreen.KAZA_NAMAZ
         ),
         ExploreToolItem(
+            id = "greetings",
+            title = t("Tebrik Kartları"),
+            subtitle = t("Cuma, kandil, bayram ve günlük mesajları şık görsel kartlarla paylaşın"),
+            icon = Icons.Default.Image,
+            accentColor = Color(0xFFE2BE6E),
+            screen = AppScreen.GREETINGS
+        ),
+        ExploreToolItem(
             id = "topics",
             title = t("Konulu Kur'an Fihristi"),
             subtitle = t("Huzur, sabır, rızık, şifa, tövbe, aile… konuya göre ayetler"),

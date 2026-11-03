@@ -424,6 +424,8 @@ fun HomeScreen(
 
             val quickActions = listOf(
                 QuickActionItem(t("Namaz Takibi"), Icons.Default.TaskAlt, Color(0xFF26C6DA), AppScreen.PRAYER_TRACKER),
+                QuickActionItem(t("Tebrik Kartı"), Icons.Default.Image, Color(0xFFE2BE6E), AppScreen.GREETINGS),
+                QuickActionItem(t("Konulu Fihrist"), Icons.Default.Topic, Color(0xFF5C9DFF), AppScreen.TOPICS),
                 QuickActionItem(t("Kıble Bulucu"), Icons.Default.Explore, GoldChampagne, AppScreen.QIBLA),
                 QuickActionItem(t("Yakındaki Camiler"), Icons.Default.Mosque, Color(0xFF8D6E63), AppScreen.HOME),
                 QuickActionItem(t("Kur'an Oku"), Icons.Default.MenuBook, Color(0xFF42A5F5), AppScreen.QURAN),

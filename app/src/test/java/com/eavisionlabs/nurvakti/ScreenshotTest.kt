@@ -125,6 +125,15 @@ class ScreenshotTest {
     }
     @Test fun home_ottoman() { val s = state(); shot("16_home_ottoman", "ottoman") { HomeScreen(s, {}, {}, {}) } }
     @Test fun home_night() { val s = state(); shot("17_home_night", "night") { HomeScreen(s, {}, {}, {}) } }
+    @Test fun greetings() { shot("18_greetings") { GreetingsScreen({}, {}, {}) } }
+    @Test fun profile_account() {
+        val acts = com.eavisionlabs.nurvakti.ui.components.AccountActions({}, {}, {}, {}, {}, {})
+        val s1 = state()
+        shot("19_profile_signin") { ProfileScreen(s1, {}, {}, {}, account = acts) }
+        val s2 = state().copy(accountEmail = "emre@example.com", accountName = "Emre", cloudLastBackup = System.currentTimeMillis())
+        shot("19b_profile_account") { ProfileScreen(s2, {}, {}, {}, account = acts) }
+    }
+
     @Test fun share_cards() {
         val app = ApplicationProvider.getApplicationContext<Application>()
         QuranRepository.init(app)
