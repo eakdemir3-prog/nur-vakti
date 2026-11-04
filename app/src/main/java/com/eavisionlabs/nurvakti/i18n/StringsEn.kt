@@ -625,6 +625,8 @@ object StringsEn {
         "Pro üyeliğiniz hesabınızda" to "Pro stays with your account",
         "Satın aldığınız Pro her cihazda açılır." to "Pro you purchased unlocks on every device.",
         "Telefon değişse de kaybolmaz" to "Nothing is lost when you change phones",
-        "Yeni cihazda giriş yapın, her şey geri gelsin." to "Sign in on a new device and everything comes back."
+        "Yeni cihazda giriş yapın, her şey geri gelsin." to "Sign in on a new device and everything comes back.",
+        "Kullanıcı kimliği" to "User ID",
+        "Kullanıcı kimliği kopyalandı" to "User ID copied"
     )
 }

@@ -2,6 +2,7 @@ package com.eavisionlabs.nurvakti.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -104,6 +105,7 @@ fun AccountCard(uiState: UiState, actions: AccountActions, modifier: Modifier = 
                     }
                 }
                 ToggleRow(t("Otomatik yedekleme"), t("Günde bir kez, uygulama açıldığında"), Icons.Default.Autorenew, uiState.cloudAutoBackup) { actions.setAuto(it) }
+                UserIdRow(uiState.userId, Modifier.padding(top = 4.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextButton(onClick = actions.signOut) { Text(t("Çıkış yap")) }
                     TextButton(onClick = { confirmDelete = true }) { Text(t("Hesabımı sil"), color = MaterialTheme.colorScheme.error) }
@@ -136,5 +138,41 @@ fun AccountCard(uiState: UiState, actions: AccountActions, modifier: Modifier = 
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(t("Vazgeç")) } }
         )
+    }
+}
+
+/** Kullanıcı kimliği satırı: Pro hediyesi ve destek için kopyalanıp geliştiriciye gönderilir */
+@Composable
+fun UserIdRow(userId: String?, modifier: Modifier = Modifier) {
+    if (userId.isNullOrBlank()) return
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val copy = {
+        val cb = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        cb.setPrimaryClip(android.content.ClipData.newPlainText("NurVakti kimliği", userId))
+        android.widget.Toast.makeText(context, t("Kullanıcı kimliği kopyalandı"), android.widget.Toast.LENGTH_SHORT).show()
+    }
+    Surface(
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { copy() },
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(t("Kullanıcı kimliği"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    userId,
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace),
+                    color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis
+                )
+            }
+            IconButton(onClick = copy) { Icon(Icons.Default.ContentCopy, contentDescription = t("Kopyala"), tint = GoldChampagne) }
+            IconButton(onClick = {
+                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(android.content.Intent.EXTRA_TEXT, "NurVakti kullanıcı kimliğim: $userId")
+                }
+                runCatching { context.startActivity(android.content.Intent.createChooser(send, t("Paylaş"))) }
+            }) { Icon(Icons.Default.Share, contentDescription = t("Paylaş"), tint = GoldChampagne) }
+        }
     }
 }

@@ -194,6 +194,8 @@ data class UiState(
     val cloudBusy: Boolean = false,
     /** Giriş ekranı gösterilsin mi (ne Google hesabı ne de hesapsız seçim var) */
     val needsLogin: Boolean = false,
+    /** Destek ve Pro hediyesi için gösterilen kullanıcı kimliği */
+    val userId: String? = null,
     val premiumPrices: Map<String, String> = emptyMap(),
     val premiumProduct: String? = null,
     val isPurchasing: Boolean = false,
@@ -366,6 +368,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         billing.connect()
+        _uiState.update { it.copy(userId = billing.appUserId()) }
         com.eavisionlabs.nurvakti.ads.AdsManager.onRewardedAvailabilityChanged = { ready ->
             _uiState.update { it.copy(rewardedAdReady = ready) }
         }
@@ -1225,6 +1228,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun markReviewRequested() { prefs.reviewRequested = true }
 
+    fun onAppResumed() {
+        billing.refresh()
+        _uiState.update { it.copy(userId = billing.appUserId()) }
+    }
+
     // ------------------------------------------------------------------
     // Google hesabı ve bulut yedeği
     // ------------------------------------------------------------------
@@ -1242,6 +1250,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.accountGuest = false
                 _uiState.update { it.copy(accountEmail = info.email, accountName = info.name, needsLogin = false) }
                 billing.logIn(info.id)
+                _uiState.update { it.copy(userId = billing.appUserId()) }
                 showMessage(String.format(t("Hoş geldiniz, %s"), info.name ?: info.email))
                 // Buluttaki yedek varsa ve bu cihaz yeniyse geri yüklemeyi öner
                 val token = driveToken(true) ?: return@launch
@@ -1268,7 +1277,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             billing.logOut()
             prefs.clearAccount()
             prefs.accountGuest = false
-            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L, needsLogin = true) }
+            _uiState.update { it.copy(accountEmail = null, accountName = null, cloudLastBackup = 0L, needsLogin = true, userId = billing.appUserId()) }
         }
     }
 

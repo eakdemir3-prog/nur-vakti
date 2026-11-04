@@ -319,6 +319,7 @@ fun SettingsScreen(
                 NurCard {
                     SettingRow(t("NurVakti Pro"), if (uiState.isPaidPremium) t("Aktif") else if (uiState.isPremiumActive) t("24 saatlik deneme açık") else t("Ayrıcalıkları keşfedin"), Icons.Default.WorkspacePremium,
                         onClick = { viewModel.navigateTo(AppScreen.PREMIUM) })
+                    UserIdRow(uiState.userId, Modifier.padding(vertical = 6.dp))
                     SettingRow(t("Gizlilik Politikası"), null, Icons.Default.PrivacyTip, onClick = onOpenPrivacy)
                     if (onAdPrivacy != null) {
                         SettingRow(t("Reklam gizlilik seçenekleri"), t("Kişiselleştirilmiş reklam onayınızı değiştirin"), Icons.Default.Shield, onClick = onAdPrivacy)

@@ -154,6 +154,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         if (viewModel.uiState.value.isOnboardingComplete) AdsManager.init(this)
         viewModel.autoBackupIfDue { driveToken(it) }
+        viewModel.onAppResumed()
         val now = System.currentTimeMillis()
         if (pendingAdBreak) {
             pendingAdBreak = false

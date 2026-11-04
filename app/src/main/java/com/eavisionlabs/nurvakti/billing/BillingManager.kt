@@ -186,6 +186,15 @@ class BillingManager(context: Context) {
         runCatching { if (!Purchases.sharedInstance.isAnonymous) apply(Purchases.sharedInstance.awaitLogOut()) }
     }
 
+    /** RevenueCat kullanıcı kimliği (Pro hediye etmek için panelde aranır) */
+    fun appUserId(): String? = if (configured) runCatching { Purchases.sharedInstance.appUserID }.getOrNull() else null
+
+    /** Uygulama öne geldiğinde üyelik durumunu tazele (panelden verilen hediye Pro hemen görünsün) */
+    fun refresh() {
+        if (!configured) return
+        scope.launch { runCatching { apply(Purchases.sharedInstance.awaitCustomerInfo()) } }
+    }
+
     fun clearMessage() = _state.update { it.copy(message = null) }
 
     fun end() {

@@ -625,6 +625,8 @@ object StringsAr {
         "Pro üyeliğiniz hesabınızda" to "اشتراك Pro مرتبط بحسابك",
         "Satın aldığınız Pro her cihazda açılır." to "يُفعَّل Pro الذي اشتريته على كل أجهزتك.",
         "Telefon değişse de kaybolmaz" to "لا يضيع شيء عند تغيير الهاتف",
-        "Yeni cihazda giriş yapın, her şey geri gelsin." to "سجّل الدخول على جهاز جديد ويعود كل شيء."
+        "Yeni cihazda giriş yapın, her şey geri gelsin." to "سجّل الدخول على جهاز جديد ويعود كل شيء.",
+        "Kullanıcı kimliği" to "معرّف المستخدم",
+        "Kullanıcı kimliği kopyalandı" to "تم نسخ معرّف المستخدم"
     )
 }
