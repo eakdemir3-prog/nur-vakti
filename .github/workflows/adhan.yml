@@ -33,7 +33,8 @@ jobs:
           json.dump(rep,open("report.json","w"),ensure_ascii=False,indent=1)
           for r in rep:
               if r["url"] and r["size"] and r["size"]<15_000_000 and ("CC" in r["lic"] or "Public" in r["lic"] or "PD" in r["lic"]):
-                  name="a_"+os.path.basename(r["url"])
+                  if not any(k in r["title"] for k in ("Beautiful adhan","Azan.ogg","Aaqib","Adhan.ogg","Islamic call","Sabah Fakhry")): continue
+                  name="a_"+str(abs(hash(r["title"])))[:8]+"_"+r["title"].replace("File:","").replace(" ","_")[-40:]
                   open(name,"wb").write(urllib.request.urlopen(urllib.request.Request(r["url"],headers={"User-Agent":UA})).read())
           P
           python3 q.py > log.txt 2>&1 || true
