@@ -17,7 +17,7 @@ android {
     applicationId = "com.aistudio.nurvakti.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 16
+    versionCode = 17
     versionName = "1.2.4"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -85,6 +85,8 @@ android {
     buildConfig = true
   }
   testOptions { unitTests { isIncludeAndroidResources = true } }
+  // Ses dosyaları sıkıştırılmasın (doğrudan oynatılabilsin)
+  androidResources { noCompress += listOf("ogg", "mp3") }
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true

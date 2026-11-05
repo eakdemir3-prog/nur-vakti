@@ -130,6 +130,24 @@ class AdhanService : Service() {
         }
     }
 
+    /**
+     * Uygulamaya gömülü sesi dosyaya çıkarır. Play'den gelen pakette ses sıkıştırılmış olabildiği için
+     * doğrudan kaynaktan açmak (openRawResourceFd) sessiz kalıyordu; dosyadan çalmak her durumda çalışır.
+     */
+    private fun rawFile(resId: Int, name: String): java.io.File {
+        val dir = java.io.File(filesDir, "sounds").apply { mkdirs() }
+        val out = java.io.File(dir, name)
+        val tmp = java.io.File(dir, "$name.tmp")
+        resources.openRawResource(resId).use { input ->
+            val bytes = input.readBytes()
+            if (!out.exists() || out.length() != bytes.size.toLong()) {
+                tmp.writeBytes(bytes)
+                tmp.renameTo(out)
+            }
+        }
+        return out
+    }
+
     /** Uygulamaya gömülü varsayılan ezan; açılamazsa false döner (alarm sesine düşülür) */
     private fun playBundledAdhan(): Boolean {
         val p = MediaPlayer()
@@ -140,9 +158,7 @@ class AdhanService : Service() {
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
-            val afd = resources.openRawResourceFd(com.eavisionlabs.nurvakti.R.raw.ezan_varsayilan)
-            p.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-            afd.close()
+            p.setDataSource(rawFile(com.eavisionlabs.nurvakti.R.raw.ezan_varsayilan, "ezan_varsayilan.ogg").absolutePath)
             p.isLooping = false
             p.setOnCompletionListener { stopSelfSafely() }
             p.prepare()
@@ -166,9 +182,7 @@ class AdhanService : Service() {
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
-            val afd = resources.openRawResourceFd(com.eavisionlabs.nurvakti.R.raw.huzur_alarm)
-            p.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-            afd.close()
+            p.setDataSource(rawFile(com.eavisionlabs.nurvakti.R.raw.huzur_alarm, "huzur_alarm.ogg").absolutePath)
             p.isLooping = true
             p.prepare()
             val start = if (preview) 0.7f else 0.15f
