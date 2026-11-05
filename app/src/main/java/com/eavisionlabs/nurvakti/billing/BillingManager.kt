@@ -71,6 +71,10 @@ class BillingManager(context: Context) {
         /** plan anahtarı -> Play'deki biçimli fiyat ("49,99 ₺") */
         val prices: Map<String, String> = emptyMap(),
         val message: String? = null,
+        /** Pro, RevenueCat panelinden hediye olarak verildiyse */
+        val isGift: Boolean = false,
+        /** Süreli Pro'nun bitiş zamanı (ömür boyu ise null) */
+        val expiresAt: Long? = null,
         val isPurchasing: Boolean = false
     )
 
@@ -123,9 +127,12 @@ class BillingManager(context: Context) {
             productId.contains("aylik") || productId.contains("month") -> SUB_MONTHLY
             else -> SUB_YEARLY
         }
+        val gift = premium && ent?.store == com.revenuecat.purchases.Store.PROMOTIONAL
         prefs.isPremiumActive = premium
         prefs.premiumProductId = plan
-        _state.update { it.copy(isPremium = premium, activeProduct = plan, isPurchasing = false) }
+        _state.update {
+            it.copy(isPremium = premium, activeProduct = plan, isPurchasing = false, isGift = gift, expiresAt = ent?.expirationDate?.time)
+        }
     }
 
     /** Play'deki geçerli satın alımları RevenueCat üzerinden geri yükler. */

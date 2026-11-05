@@ -627,6 +627,20 @@ object StringsEn {
         "Telefon değişse de kaybolmaz" to "Nothing is lost when you change phones",
         "Yeni cihazda giriş yapın, her şey geri gelsin." to "Sign in on a new device and everything comes back.",
         "Kullanıcı kimliği" to "User ID",
-        "Kullanıcı kimliği kopyalandı" to "User ID copied"
+        "Kullanıcı kimliği kopyalandı" to "User ID copied",
+        "Aylık plana göre yaklaşık %50 tasarruf. Her yıl yenilenir." to "About 50% cheaper than monthly. Renews every year.",
+        "Bir kez ödeyin, Pro sonsuza dek sizin. Yenileme yok, abonelik yok." to "Pay once, Pro is yours forever. No renewals, no subscription.",
+        "Bitiş: %s" to "Ends: %s",
+        "Hediye Pro aktif 🎁" to "Gift Pro active 🎁",
+        "Her ay yenilenir, istediğiniz zaman iptal edebilirsiniz." to "Renews monthly, cancel anytime.",
+        "POPÜLER" to "POPULAR",
+        "Tek seferlik %s ile bir daha ödeme yapmazsınız." to "Pay %s once and never pay again.",
+        "Yakında" to "Soon",
+        "Ömür boyu Pro'ya geçin" to "Switch to lifetime Pro",
+        "Ömür boyu Pro'yu al" to "Get lifetime Pro",
+        "Ömür boyu satın al" to "Buy lifetime",
+        "Önemli: Satın aldıktan sonra mevcut aboneliğinizi Google Play > Ödemeler ve abonelikler bölümünden iptal edin; aksi halde yenilenmeye devam eder." to "Important: after buying, cancel your current subscription in Google Play > Payments & subscriptions, otherwise it keeps renewing.",
+        "Ücretsiz deneme %d gün sonra yeniden açılır." to "The free trial is available again in %d days.",
+        "Şimdi değil" to "Not now"
     )
 }

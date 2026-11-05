@@ -36,9 +36,11 @@ fun PremiumScreen(
     onWatchReward: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    var selectedPlan by remember { mutableStateOf("yearly") }
     val prices = uiState.premiumPrices
     fun price(id: String) = prices[id] ?: "—"
+    // Ömür boyu Play'de tanımlıysa varsayılan seçim odur
+    val lifetimeReady = prices.containsKey(BillingManager.LIFETIME)
+    var selectedPlan by remember(lifetimeReady) { mutableStateOf(if (lifetimeReady) "lifetime" else "yearly") }
 
     SubScreenScaffold(title = t("NurVakti Pro"), onBack = onBack) { padding ->
         LazyColumn(
@@ -100,12 +102,20 @@ fun PremiumScreen(
                             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
                             Column {
-                                Text(t("NurVakti Pro aktif"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                 Text(
-                                    when (uiState.premiumProduct) {
-                                        BillingManager.LIFETIME -> t("Ömür boyu erişim")
-                                        BillingManager.SUB_MONTHLY -> t("Aylık abonelik")
-                                        BillingManager.SUB_YEARLY -> t("Yıllık abonelik")
+                                    if (uiState.premiumIsGift) t("Hediye Pro aktif 🎁") else t("NurVakti Pro aktif"),
+                                    fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    when {
+                                        uiState.premiumIsGift && uiState.premiumExpiresAt != null -> String.format(
+                                            t("Bitiş: %s"),
+                                            java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(uiState.premiumExpiresAt))
+                                        )
+                                        uiState.premiumIsGift -> t("Ömür boyu erişim")
+                                        uiState.premiumProduct == BillingManager.LIFETIME -> t("Ömür boyu erişim")
+                                        uiState.premiumProduct == BillingManager.SUB_MONTHLY -> t("Aylık abonelik")
+                                        uiState.premiumProduct == BillingManager.SUB_YEARLY -> t("Yıllık abonelik")
                                         else -> ""
                                     } + " • " + t("Desteğiniz için teşekkür ederiz."),
                                     style = MaterialTheme.typography.bodySmall,
@@ -136,18 +146,70 @@ fun PremiumScreen(
                 Spacer(Modifier.height(20.dp))
             }
 
+            // Abone olanlara ömür boyuya geçiş
+            if (uiState.isPaidPremium && !uiState.premiumIsGift && lifetimeReady &&
+                (uiState.premiumProduct == BillingManager.SUB_MONTHLY || uiState.premiumProduct == BillingManager.SUB_YEARLY)
+            ) {
+                item {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(1.5.dp, GoldChampagne)
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(t("Ömür boyu Pro'ya geçin"), fontWeight = FontWeight.Bold, color = GoldLight)
+                            Text(
+                                String.format(t("Tek seferlik %s ile bir daha ödeme yapmazsınız."), price(BillingManager.LIFETIME)),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            Button(
+                                onClick = { onPurchase("lifetime") },
+                                enabled = !uiState.isPurchasing,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = GoldChampagne, contentColor = EmeraldDarkest)
+                            ) { Text(t("Ömür boyu satın al"), fontWeight = FontWeight.Bold) }
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                t("Önemli: Satın aldıktan sonra mevcut aboneliğinizi Google Play > Ödemeler ve abonelikler bölümünden iptal edin; aksi halde yenilenmeye devam eder."),
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+
             if (!uiState.isPaidPremium) {
                 item {
                     Text(t("Planınızı seçin"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(10.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        PlanCard(t("Yıllık"), price(BillingManager.SUB_YEARLY), t("yıllık"), t("EN AVANTAJLI"), selectedPlan == "yearly", { selectedPlan = "yearly" }, Modifier.weight(1f))
-                        PlanCard(t("Aylık"), price(BillingManager.SUB_MONTHLY), t("aylık"), null, selectedPlan == "monthly", { selectedPlan = "monthly" }, Modifier.weight(1f))
-                        // Ömür boyu yalnızca Play'de tanımlıysa (fiyat geldiyse) gösterilir
-                        if (prices.isEmpty() || prices.containsKey(BillingManager.LIFETIME)) {
-                            PlanCard(t("Ömür Boyu"), price(BillingManager.LIFETIME), t("tek seferlik"), null, selectedPlan == "lifetime", { selectedPlan = "lifetime" }, Modifier.weight(1f))
-                        }
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PlanCard(t("Aylık"), price(BillingManager.SUB_MONTHLY), t("aylık"), null, selectedPlan == "monthly", { selectedPlan = "monthly" }, Modifier.weight(1f).fillMaxHeight())
+                        PlanCard(t("Yıllık"), price(BillingManager.SUB_YEARLY), t("yıllık"), t("POPÜLER"), selectedPlan == "yearly", { selectedPlan = "yearly" }, Modifier.weight(1f).fillMaxHeight())
+                        // Ömür boyu: Play'de ürün oluşana kadar "Yakında" olarak görünür
+                        PlanCard(
+                            t("Ömür Boyu"),
+                            if (lifetimeReady) price(BillingManager.LIFETIME) else t("Yakında"),
+                            t("tek seferlik"), t("EN AVANTAJLI"),
+                            selectedPlan == "lifetime",
+                            { if (lifetimeReady) selectedPlan = "lifetime" },
+                            Modifier.weight(1f).fillMaxHeight(),
+                            highlight = true,
+                            enabled = lifetimeReady || prices.isEmpty()
+                        )
                     }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        when (selectedPlan) {
+                            "lifetime" -> t("Bir kez ödeyin, Pro sonsuza dek sizin. Yenileme yok, abonelik yok.")
+                            "yearly" -> t("Aylık plana göre yaklaşık %50 tasarruf. Her yıl yenilenir.")
+                            else -> t("Her ay yenilenir, istediğiniz zaman iptal edebilirsiniz.")
+                        },
+                        style = MaterialTheme.typography.bodySmall, color = GoldLight, textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = { onPurchase(selectedPlan) },
@@ -157,13 +219,14 @@ fun PremiumScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = GoldChampagne, contentColor = EmeraldDarkest)
                     ) {
                         if (uiState.isPurchasing) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = EmeraldDarkest)
-                        else Text(t("Devam et"), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        else Text(if (selectedPlan == "lifetime") t("Ömür boyu Pro'yu al") else t("Devam et"), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                     if (onWatchReward != null && !uiState.isPremiumActive) {
+                        val waitMs = uiState.rewardAvailableAt - System.currentTimeMillis()
                         Spacer(Modifier.height(10.dp))
                         OutlinedButton(
                             onClick = onWatchReward,
-                            enabled = uiState.rewardedAdReady,
+                            enabled = uiState.rewardedAdReady || waitMs > 0,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, GoldChampagne),
@@ -172,7 +235,11 @@ fun PremiumScreen(
                             Icon(Icons.Default.OndemandVideo, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                if (uiState.rewardedAdReady) t("Kısa bir reklam izle, 24 saat ücretsiz dene") else t("Deneme reklamı hazırlanıyor…"),
+                                when {
+                                    waitMs > 0 -> String.format(t("Ücretsiz deneme %d gün sonra yeniden açılır."), ((waitMs + 86_399_999L) / 86_400_000L).toInt())
+                                    uiState.rewardedAdReady -> t("Kısa bir reklam izle, 24 saat ücretsiz dene")
+                                    else -> t("Deneme reklamı hazırlanıyor…")
+                                },
                                 maxLines = 2, textAlign = TextAlign.Center
                             )
                         }
@@ -190,6 +257,9 @@ fun PremiumScreen(
             item {
                 Spacer(Modifier.height(10.dp))
                 TextButton(onClick = onRestore, modifier = Modifier.fillMaxWidth()) { Text(t("Satın alımları geri yükle"), color = GoldChampagne) }
+                if (!uiState.isPaidPremium) {
+                    TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(t("Şimdi değil"), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                }
                 Text(
                     t("Abonelikler Google Play hesabınız üzerinden yönetilir ve dönem sonunda otomatik yenilenir. İstediğiniz zaman Google Play > Ödemeler ve abonelikler bölümünden iptal edebilirsiniz."),
                     style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -219,13 +289,18 @@ private fun ProFeature(icon: ImageVector, title: String, desc: String) {
 @Composable
 private fun PlanCard(
     title: String, price: String, period: String, badge: String?,
-    isSelected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier
+    isSelected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier,
+    highlight: Boolean = false, enabled: Boolean = true
 ) {
     Surface(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .clickable { onSelect() }
-            .border(if (isSelected) 2.dp else 1.dp, if (isSelected) GoldChampagne else MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
+            .clickable(enabled = enabled) { onSelect() }
+            .border(
+                if (isSelected || highlight) 2.dp else 1.dp,
+                if (isSelected) GoldChampagne else if (highlight) GoldChampagne.copy(alpha = 0.55f) else MaterialTheme.colorScheme.outline,
+                RoundedCornerShape(16.dp)
+            ),
         shape = RoundedCornerShape(16.dp),
         color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface
     ) {

@@ -198,6 +198,10 @@ data class UiState(
     val userId: String? = null,
     val premiumPrices: Map<String, String> = emptyMap(),
     val premiumProduct: String? = null,
+    val premiumIsGift: Boolean = false,
+    val premiumExpiresAt: Long? = null,
+    /** Ödüllü deneme tekrar ne zaman alınabilir (0: şimdi) */
+    val rewardAvailableAt: Long = 0L,
     val isPurchasing: Boolean = false,
     val isLocating: Boolean = false,
     val kazaSabah: Int = 0,
@@ -240,6 +244,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         /** Pro temalar (init sırasında da kullanıldığı için sınıf düzeyinde sabit) */
         private val proThemes = setOf("kiswa", "ottoman", "night")
+        /** Ödüllü reklamla deneme en fazla 7 günde bir */
+        const val REWARD_COOLDOWN_MS = 7L * 24 * 60 * 60_000L
     }
 
     private val app = application
@@ -312,6 +318,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             isPremiumActive = prefs.isPremiumActive || prefs.rewardUnlockUntil > System.currentTimeMillis(),
             isPaidPremium = prefs.isPremiumActive,
             rewardUntil = prefs.rewardUnlockUntil,
+            rewardAvailableAt = prefs.rewardLastGrant + REWARD_COOLDOWN_MS,
             premiumProduct = prefs.premiumProductId,
             kazaSabah = prefs.kazaSabah,
             kazaOgle = prefs.kazaOgle,
@@ -357,6 +364,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         isPremiumActive = b.isPremium || rewardActive(),
                         isPaidPremium = b.isPremium,
                         premiumProduct = b.activeProduct,
+                        premiumIsGift = b.isGift,
+                        premiumExpiresAt = b.expiresAt,
                         premiumPrices = b.prices,
                         isPurchasing = b.isPurchasing,
                         message = b.message ?: it.message
@@ -390,6 +399,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         prefs.isOnboardingCompleted = true
         _uiState.update {
             it.copy(isOnboardingComplete = true, currentScreen = AppScreen.HOME, navigationStack = listOf(AppScreen.HOME))
+        }
+        // Tanıtımın sonunda bir kez Pro'yu göster (Pro değilse); geri ile kapanır
+        if (!prefs.proIntroShown && !_uiState.value.isPaidPremium) {
+            prefs.proIntroShown = true
+            navigateTo(AppScreen.PREMIUM)
         }
     }
 
@@ -1206,7 +1220,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun grantRewardTrial() {
         val until = System.currentTimeMillis() + com.eavisionlabs.nurvakti.ads.AdsManager.REWARD_DURATION_MS
         prefs.rewardUnlockUntil = until
-        _uiState.update { it.copy(isPremiumActive = true, rewardUntil = until) }
+        val now = System.currentTimeMillis()
+        prefs.rewardLastGrant = now
+        _uiState.update { it.copy(isPremiumActive = true, rewardUntil = until, rewardAvailableAt = now + REWARD_COOLDOWN_MS) }
         showMessage(t("Teşekkürler! Pro özellikleri 24 saat boyunca açık."))
     }
 

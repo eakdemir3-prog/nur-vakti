@@ -627,6 +627,20 @@ object StringsAr {
         "Telefon değişse de kaybolmaz" to "لا يضيع شيء عند تغيير الهاتف",
         "Yeni cihazda giriş yapın, her şey geri gelsin." to "سجّل الدخول على جهاز جديد ويعود كل شيء.",
         "Kullanıcı kimliği" to "معرّف المستخدم",
-        "Kullanıcı kimliği kopyalandı" to "تم نسخ معرّف المستخدم"
+        "Kullanıcı kimliği kopyalandı" to "تم نسخ معرّف المستخدم",
+        "Aylık plana göre yaklaşık %50 tasarruf. Her yıl yenilenir." to "توفير نحو 50% مقارنة بالشهري. يتجدد سنويًا.",
+        "Bir kez ödeyin, Pro sonsuza dek sizin. Yenileme yok, abonelik yok." to "ادفع مرة واحدة ويصبح Pro لك للأبد. بلا تجديد أو اشتراك.",
+        "Bitiş: %s" to "ينتهي: %s",
+        "Hediye Pro aktif 🎁" to "Pro هدية مفعّل 🎁",
+        "Her ay yenilenir, istediğiniz zaman iptal edebilirsiniz." to "يتجدد شهريًا ويمكنك الإلغاء في أي وقت.",
+        "POPÜLER" to "الأكثر شيوعًا",
+        "Tek seferlik %s ile bir daha ödeme yapmazsınız." to "ادفع %s مرة واحدة ولن تدفع مجددًا.",
+        "Yakında" to "قريبًا",
+        "Ömür boyu Pro'ya geçin" to "انتقل إلى Pro مدى الحياة",
+        "Ömür boyu Pro'yu al" to "احصل على Pro مدى الحياة",
+        "Ömür boyu satın al" to "شراء مدى الحياة",
+        "Önemli: Satın aldıktan sonra mevcut aboneliğinizi Google Play > Ödemeler ve abonelikler bölümünden iptal edin; aksi halde yenilenmeye devam eder." to "مهم: بعد الشراء ألغِ اشتراكك الحالي من Google Play > الدفعات والاشتراكات، وإلا سيستمر التجديد.",
+        "Ücretsiz deneme %d gün sonra yeniden açılır." to "تتاح التجربة المجانية مجددًا بعد %d أيام.",
+        "Şimdi değil" to "ليس الآن"
     )
 }

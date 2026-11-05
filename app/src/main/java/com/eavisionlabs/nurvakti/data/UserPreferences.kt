@@ -479,6 +479,15 @@ class UserPreferences(context: Context) {
         get() = prefs.getLong("ads_reward_until", 0L)
         set(value) = prefs.edit().putLong("ads_reward_until", value).apply()
 
+    /** Son ödüllü deneme zamanı (7 günde bir sınırı) */
+    var rewardLastGrant: Long
+        get() = prefs.getLong("ads_reward_last", 0L)
+        set(value) = prefs.edit().putLong("ads_reward_last", value).apply()
+
+    var proIntroShown: Boolean
+        get() = prefs.getBoolean("pro_intro_shown", false)
+        set(value) = prefs.edit().putBoolean("pro_intro_shown", value).apply()
+
     var adsLastInterstitial: Long
         get() = prefs.getLong("ads_last_interstitial", 0L)
         set(value) = prefs.edit().putLong("ads_last_interstitial", value).apply()

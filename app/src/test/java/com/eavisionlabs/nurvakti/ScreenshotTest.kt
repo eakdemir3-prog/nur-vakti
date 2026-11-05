@@ -125,6 +125,14 @@ class ScreenshotTest {
     }
     @Test fun home_ottoman() { val s = state(); shot("16_home_ottoman", "ottoman") { HomeScreen(s, {}, {}, {}) } }
     @Test fun home_night() { val s = state(); shot("17_home_night", "night") { HomeScreen(s, {}, {}, {}) } }
+    @Test fun premium_lifetime() {
+        val s = state().copy(premiumPrices = mapOf("monthly" to "₺49,99", "yearly" to "₺299,99", "lifetime" to "₺449,99"), rewardedAdReady = true)
+        shot("09b_premium_lifetime") { PremiumScreen(s, {}, {}, {}, onWatchReward = {}) }
+    }
+    @Test fun premium_lifetime_big() {
+        val s = state().copy(premiumPrices = mapOf("monthly" to "₺49,99", "yearly" to "₺299,99", "lifetime" to "₺449,99"))
+        shot("09c_premium_lifetime_big", fontScale = 1.4f) { PremiumScreen(s, {}, {}, {}) }
+    }
     @Test fun login() { shot("00_login") { LoginScreen(false, {}, {}) } }
     @Test fun greetings() { shot("18_greetings") { GreetingsScreen({}, {}, {}) } }
     @Test fun profile_signin() {

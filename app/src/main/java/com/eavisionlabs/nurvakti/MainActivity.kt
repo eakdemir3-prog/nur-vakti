@@ -194,6 +194,11 @@ class MainActivity : ComponentActivity() {
     }
 
     fun watchRewardedAd() {
+        val wait = viewModel.uiState.value.rewardAvailableAt - System.currentTimeMillis()
+        if (wait > 0) {
+            val days = ((wait + 86_399_999L) / 86_400_000L).toInt()
+            viewModel.showMessage(String.format(t("Ücretsiz deneme %d gün sonra yeniden açılır."), days)); return
+        }
         val shown = AdsManager.showRewarded(this) { viewModel.grantRewardTrial() }
         if (!shown) viewModel.showMessage(t("Reklam şu an hazır değil, birazdan tekrar deneyin."))
     }
