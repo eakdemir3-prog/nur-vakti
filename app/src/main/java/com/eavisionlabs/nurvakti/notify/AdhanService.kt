@@ -176,12 +176,21 @@ class AdhanService : Service() {
         return out
     }
 
+    /**
+     * Ses dosyasını oynatıcıya dosya tanıtıcısı (FileDescriptor) olarak verir.
+     * Yol ile vermek (setDataSource(path)) bazı telefonlarda "status=0x80000000" hatası veriyordu,
+     * çünkü medya sunucusu uygulamanın özel klasörünü okuyamıyor.
+     */
+    private fun setSource(p: MediaPlayer, resId: Int, name: String) {
+        java.io.FileInputStream(rawFile(resId, name)).use { input -> p.setDataSource(input.fd) }
+    }
+
     /** Uygulamaya gömülü varsayılan ezan; açılamazsa false döner (alarm sesine düşülür) */
     private fun playBundledAdhan(): Boolean {
         val p = MediaPlayer()
         return try {
             p.setAudioAttributes(attrs())
-            p.setDataSource(rawFile(com.eavisionlabs.nurvakti.R.raw.ezan_varsayilan, "ezan_varsayilan.ogg").absolutePath)
+            setSource(p, com.eavisionlabs.nurvakti.R.raw.ezan_varsayilan, "ezan_varsayilan.ogg")
             p.isLooping = false
             p.setOnCompletionListener { stopSelfSafely() }
             p.setOnErrorListener { _, what, extra -> reportError(IllegalStateException("MediaPlayer $what/$extra")); stopSelfSafely(); true }
@@ -202,7 +211,7 @@ class AdhanService : Service() {
         val p = MediaPlayer()
         try {
             p.setAudioAttributes(attrs())
-            p.setDataSource(rawFile(com.eavisionlabs.nurvakti.R.raw.huzur_alarm, "huzur_alarm.ogg").absolutePath)
+            setSource(p, com.eavisionlabs.nurvakti.R.raw.huzur_alarm, "huzur_alarm.ogg")
             p.isLooping = true
             p.prepare()
             val start = if (preview) 0.7f else 0.15f
