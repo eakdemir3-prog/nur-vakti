@@ -40,6 +40,36 @@ class AdhanService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private val stopRunnable = Runnable { stopSelfSafely() }
     private var rampStep = 0
+    /** "Dinle" önizlemesi medya ses seviyesinden çalar (kullanıcı ses tuşlarıyla duyar) */
+    private var previewMode = false
+    private var focusRequest: android.media.AudioFocusRequest? = null
+
+    private fun attrs(): AudioAttributes = AudioAttributes.Builder()
+        .setUsage(if (previewMode) AudioAttributes.USAGE_MEDIA else AudioAttributes.USAGE_ALARM)
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .build()
+
+    private fun requestFocus() {
+        val am = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val r = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                .setAudioAttributes(attrs()).build()
+            focusRequest = r
+            runCatching { am.requestAudioFocus(r) }
+        }
+    }
+
+    /** Ses çalınamazsa nedenini bildirimde göster */
+    private fun reportError(e: Throwable) {
+        runCatching {
+            NotificationHelper.notify(
+                this, NotificationHelper.ID_ADHAN_SERVICE + 50,
+                NotificationHelper.base(this, NotificationHelper.CH_GENERAL)
+                    .setContentTitle(t("Ses çalınamadı"))
+                    .setContentText("${e.javaClass.simpleName}: ${e.message ?: ""}".take(180))
+            )
+        }
+    }
     private val rampRunnable = object : Runnable {
         override fun run() {
             val p = player ?: return
@@ -62,6 +92,8 @@ class AdhanService : Service() {
         startAsForeground(title, text)
         val wake = intent?.getBooleanExtra(EXTRA_WAKE, false) == true
         val preview = intent?.getBooleanExtra(EXTRA_PREVIEW, false) == true
+        previewMode = preview
+        requestFocus()
         if (wake) playWake(preview) else play()
         return START_NOT_STICKY
     }
@@ -100,12 +132,7 @@ class AdhanService : Service() {
 
         val p = MediaPlayer()
         try {
-            p.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
+            p.setAudioAttributes(attrs())
             p.setDataSource(this, uri)
             p.isLooping = custom == null
             p.setOnCompletionListener { stopSelfSafely() }
@@ -121,7 +148,8 @@ class AdhanService : Service() {
             p.start()
             player = p
             handler.postDelayed(stopRunnable, if (custom == null) MAX_DEFAULT_TONE_MS else MAX_ADHAN_MS)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            reportError(e)
             p.release()
             if (custom != null) {
                 prefs.adhanSoundUri = null
@@ -152,21 +180,18 @@ class AdhanService : Service() {
     private fun playBundledAdhan(): Boolean {
         val p = MediaPlayer()
         return try {
-            p.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
+            p.setAudioAttributes(attrs())
             p.setDataSource(rawFile(com.eavisionlabs.nurvakti.R.raw.ezan_varsayilan, "ezan_varsayilan.ogg").absolutePath)
             p.isLooping = false
             p.setOnCompletionListener { stopSelfSafely() }
+            p.setOnErrorListener { _, what, extra -> reportError(IllegalStateException("MediaPlayer $what/$extra")); stopSelfSafely(); true }
             p.prepare()
             p.start()
             player = p
             handler.postDelayed(stopRunnable, MAX_ADHAN_MS)
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            reportError(e)
             p.release()
             false
         }
@@ -176,12 +201,7 @@ class AdhanService : Service() {
         releasePlayer()
         val p = MediaPlayer()
         try {
-            p.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
+            p.setAudioAttributes(attrs())
             p.setDataSource(rawFile(com.eavisionlabs.nurvakti.R.raw.huzur_alarm, "huzur_alarm.ogg").absolutePath)
             p.isLooping = true
             p.prepare()
@@ -192,10 +212,17 @@ class AdhanService : Service() {
             rampStep = 0
             if (!preview) handler.postDelayed(rampRunnable, 1500L)
             handler.postDelayed(stopRunnable, if (preview) PREVIEW_MS else MAX_WAKE_MS)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            reportError(e)
             p.release()
             play()
         }
+    }
+
+    private fun abandonFocus() {
+        val am = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) focusRequest?.let { runCatching { am.abandonAudioFocusRequest(it) } }
+        focusRequest = null
     }
 
     private fun releasePlayer() {
@@ -207,6 +234,7 @@ class AdhanService : Service() {
 
     private fun stopSelfSafely() {
         releasePlayer()
+        abandonFocus()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
     }

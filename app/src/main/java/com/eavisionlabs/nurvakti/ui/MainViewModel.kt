@@ -1132,6 +1132,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val i = Intent(app, com.eavisionlabs.nurvakti.notify.AdhanService::class.java)
             .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_TITLE, t("Ezan sesi deneniyor"))
             .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_TEXT, t("Durdurmak için dokunun"))
+            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_PREVIEW, true)
         try { androidx.core.content.ContextCompat.startForegroundService(app, i) } catch (_: Exception) {}
     }
 
