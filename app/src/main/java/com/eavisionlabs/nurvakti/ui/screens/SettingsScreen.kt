@@ -156,7 +156,7 @@ fun SettingsScreen(
                     )
                     SettingRow(
                         title = t("Ezan sesi"),
-                        subtitle = uiState.adhanSoundName ?: t("Cihazın alarm sesi (telefonunuzdan bir ezan kaydı seçebilirsiniz)"),
+                        subtitle = uiState.adhanSoundName ?: t("NurVakti ezanı (telefonunuzdan başka bir kayıt da seçebilirsiniz)"),
                         icon = Icons.Default.MusicNote,
                         onClick = onPickAdhan
                     )

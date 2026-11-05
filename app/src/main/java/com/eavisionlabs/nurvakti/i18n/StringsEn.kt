@@ -641,6 +641,7 @@ object StringsEn {
         "Ömür boyu satın al" to "Buy lifetime",
         "Önemli: Satın aldıktan sonra mevcut aboneliğinizi Google Play > Ödemeler ve abonelikler bölümünden iptal edin; aksi halde yenilenmeye devam eder." to "Important: after buying, cancel your current subscription in Google Play > Payments & subscriptions, otherwise it keeps renewing.",
         "Ücretsiz deneme %d gün sonra yeniden açılır." to "The free trial is available again in %d days.",
-        "Şimdi değil" to "Not now"
+        "Şimdi değil" to "Not now",
+        "NurVakti ezanı (telefonunuzdan başka bir kayıt da seçebilirsiniz)" to "NurVakti adhan (you can also pick another recording from your phone)"
     )
 }

@@ -91,6 +91,8 @@ class AdhanService : Service() {
         releasePlayer()
         val prefs = UserPreferences(this)
         val custom = prefs.adhanSoundUri?.let { runCatching { Uri.parse(it) }.getOrNull() }
+        // Kullanıcı dosya seçmediyse uygulamanın kendi ezanı çalar
+        if (custom == null && playBundledAdhan()) return
         val uri = custom
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -125,6 +127,32 @@ class AdhanService : Service() {
                 prefs.adhanSoundUri = null
                 play()
             } else stopSelfSafely()
+        }
+    }
+
+    /** Uygulamaya gömülü varsayılan ezan; açılamazsa false döner (alarm sesine düşülür) */
+    private fun playBundledAdhan(): Boolean {
+        val p = MediaPlayer()
+        return try {
+            p.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            val afd = resources.openRawResourceFd(com.eavisionlabs.nurvakti.R.raw.ezan_varsayilan)
+            p.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+            afd.close()
+            p.isLooping = false
+            p.setOnCompletionListener { stopSelfSafely() }
+            p.prepare()
+            p.start()
+            player = p
+            handler.postDelayed(stopRunnable, MAX_ADHAN_MS)
+            true
+        } catch (_: Exception) {
+            p.release()
+            false
         }
     }
 

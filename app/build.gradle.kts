@@ -17,7 +17,7 @@ android {
     applicationId = "com.aistudio.nurvakti.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 15
+    versionCode = 16
     versionName = "1.2.4"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

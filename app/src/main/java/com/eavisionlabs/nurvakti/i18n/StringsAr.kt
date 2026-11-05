@@ -641,6 +641,7 @@ object StringsAr {
         "Ömür boyu satın al" to "شراء مدى الحياة",
         "Önemli: Satın aldıktan sonra mevcut aboneliğinizi Google Play > Ödemeler ve abonelikler bölümünden iptal edin; aksi halde yenilenmeye devam eder." to "مهم: بعد الشراء ألغِ اشتراكك الحالي من Google Play > الدفعات والاشتراكات، وإلا سيستمر التجديد.",
         "Ücretsiz deneme %d gün sonra yeniden açılır." to "تتاح التجربة المجانية مجددًا بعد %d أيام.",
-        "Şimdi değil" to "ليس الآن"
+        "Şimdi değil" to "ليس الآن",
+        "NurVakti ezanı (telefonunuzdan başka bir kayıt da seçebilirsiniz)" to "أذان نور وقتي (يمكنك أيضًا اختيار تسجيل آخر من هاتفك)"
     )
 }
