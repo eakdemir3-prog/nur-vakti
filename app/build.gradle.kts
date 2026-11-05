@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.nurvakti.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 18
-    versionName = "1.2.4"
+    versionCode = 19
+    versionName = "1.2.5"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -65,6 +65,19 @@ android {
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       if (hasReleaseKeystore) signingConfig = signingConfigs.getByName("release")
+    }
+    // Kontrol APK'sı: Play sürümüyle aynı küçültme/R8 ayarları, ayrı paket adıyla yan yana kurulur
+    create("qa") {
+      initWith(getByName("release"))
+      applicationIdSuffix = ".qa"
+      versionNameSuffix = "-kontrol"
+      signingConfig = signingConfigs.getByName("debug")
+      matchingFallbacks += listOf("release")
+      // Kendi reklamına tıklamamak için kontrol APK'sında Google test reklamları
+      manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+      buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-3940256099942544/1033173712\"")
+      buildConfigField("String", "AD_APP_OPEN", "\"ca-app-pub-3940256099942544/9257395921\"")
+      buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-3940256099942544/5224354917\"")
     }
     debug {
       // Test APK'sında Google'ın test reklamları gösterilir
