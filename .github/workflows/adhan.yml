@@ -18,8 +18,8 @@ jobs:
             curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&titles=File:$f&prop=imageinfo&iiprop=url|size|extmetadata|mime&format=json" > "meta_$f.json"
           done
           curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=ezan%20OR%20adhan%20OR%20azan%20filetype:audio&srnamespace=6&srlimit=50&format=json" > search.json
-          python3 - <<'P'
-          import json,glob,urllib.request,os
+          cat > q.py <<'P'
+          import json,glob,urllib.request,urllib.parse,os
           UA="NurVaktiBuild/1.0 (github.com/eakdemir3-prog/nur-vakti)"
           titles=[r["title"] for r in json.load(open("search.json"))["query"]["search"]]
           rep=[]
@@ -36,6 +36,7 @@ jobs:
                   name="a_"+os.path.basename(r["url"])
                   open(name,"wb").write(urllib.request.urlopen(urllib.request.Request(r["url"],headers={"User-Agent":UA})).read())
           P
-          ls -la
-          tar czf adhan.tgz *
-          gh release create "adhan-${{ github.run_number }}" adhan.tgz report.json --repo ${{ github.repository }} --target ${{ github.sha }} --prerelease --title adhan --notes adhan
+          python3 q.py > log.txt 2>&1 || true
+          ls -la >> log.txt
+          tar czf adhan.tgz * || true
+          touch report.json; gh release create "adhan-${{ github.run_number }}" adhan.tgz report.json log.txt --repo ${{ github.repository }} --target ${{ github.sha }} --prerelease --title adhan --notes adhan
