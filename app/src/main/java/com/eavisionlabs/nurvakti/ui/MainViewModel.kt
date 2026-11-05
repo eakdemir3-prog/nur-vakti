@@ -119,7 +119,7 @@ data class UiState(
     val lastReadPage: Int = 1,
     val arabicFontSize: Int = 28,
     val mealFontSize: Int = 16,
-    val readingTheme: String = "DARK",
+    val readingTheme: String = "APP",
     val showMeal: Boolean = true,
     val showArabic: Boolean = true,
     val favoriteSurahs: Set<Int> = emptySet(),

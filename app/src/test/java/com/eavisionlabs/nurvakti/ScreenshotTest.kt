@@ -108,6 +108,12 @@ class ScreenshotTest {
             QuranReaderScreen(s, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, {}, { _, _ -> }, {}, {}, {})
         }
     }
+    @Test fun reader_ottoman() {
+        val s = state()
+        shot("07b_reader_ottoman", "ottoman") {
+            QuranReaderScreen(s, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, {}, { _, _ -> }, {}, {}, {})
+        }
+    }
     @Test fun tracker() { val s = state(); shot("08_tracker") { PrayerTrackerScreen(s, {}, {}, {}) } }
     @Test fun premium() { val s = state(); shot("09_premium") { PremiumScreen(s, {}, {}, {}) } }
     @Test fun ramazan() { val s = state(); shot("10_ramazan_light", "light") { RamazanHatimScreen(s, {}, {}, {}) } }

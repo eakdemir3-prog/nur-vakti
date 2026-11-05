@@ -94,6 +94,8 @@ fun QuranReaderScreen(
     val (readerBg, readerCard, readerText, readerGold) = when (uiState.readingTheme) {
         "LIGHT" -> listOf(IvoryBackground, CardLight, EmeraldTextDark, GoldAccentLight)
         "SEPIA" -> listOf(SepiaBackground, SepiaCard, SepiaText, SepiaGold)
+        "DARK" -> Palettes.Dark.let { listOf(it.darkest, it.card, it.cream, it.gold) }
+        // Uygulama teması (varsayılan): seçili temanın renkleri
         else -> listOf(EmeraldDarkest, EmeraldCard, CreamWhite, GoldChampagne)
     }
 
@@ -306,8 +308,8 @@ fun QuranReaderScreen(
                 Text(t("Okuma Ayarları"), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = readerGold))
                 Spacer(Modifier.height(14.dp))
                 Label(t("Okuma Teması"), readerText)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    listOf("DARK" to t("Gece"), "LIGHT" to t("Açık"), "SEPIA" to t("Sepya")).forEach { (k, label) ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("APP" to t("Tema"), "DARK" to t("Gece"), "LIGHT" to t("Açık"), "SEPIA" to t("Sepya")).forEach { (k, label) ->
                         val sel = uiState.readingTheme == k
                         OutlinedButton(
                             onClick = { onSetReadingTheme(k) }, modifier = Modifier.weight(1f),
@@ -315,6 +317,7 @@ fun QuranReaderScreen(
                                 containerColor = if (sel) readerGold else Color.Transparent,
                                 contentColor = if (sel) readerBg else readerText
                             )
+                            , contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
                         ) { Text(label, fontSize = 12.sp, maxLines = 1) }
                     }
                 }

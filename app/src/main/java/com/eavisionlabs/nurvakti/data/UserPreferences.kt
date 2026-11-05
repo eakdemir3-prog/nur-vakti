@@ -55,9 +55,10 @@ class UserPreferences(context: Context) {
         get() = prefs.getInt("meal_font_size", 16)
         set(value) = prefs.edit().putInt("meal_font_size", value).apply()
 
-    var readingTheme: String // "DARK", "LIGHT", "SEPIA"
-        get() = prefs.getString("reading_theme", "DARK") ?: "DARK"
-        set(value) = prefs.edit().putString("reading_theme", value).apply()
+    /** "APP" (uygulama temasını izler), "DARK", "LIGHT", "SEPIA". 1.2.4'te herkes "APP" ile başlar. */
+    var readingTheme: String
+        get() = prefs.getString("reading_theme_v2", "APP") ?: "APP"
+        set(value) = prefs.edit().putString("reading_theme_v2", value).apply()
 
     var showMeal: Boolean
         get() = prefs.getBoolean("show_meal", true)
