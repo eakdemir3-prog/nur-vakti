@@ -30,11 +30,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 object AdsManager {
 
-    private const val INTERSTITIAL_GAP_MS = 3 * 60_000L
-    private const val INTERSTITIAL_DAILY_CAP = 6
-    private const val INSTALL_GRACE_MS = 30 * 60_000L
-    private const val APP_OPEN_GAP_MS = 4 * 60 * 60_000L
-    private const val APP_OPEN_FIRST_DAY_MS = 24 * 60 * 60_000L
+    private const val INTERSTITIAL_GAP_MS = 2 * 60_000L
+    private const val INTERSTITIAL_DAILY_CAP = 10
+    private const val INSTALL_GRACE_MS = 15 * 60_000L
+    private const val APP_OPEN_GAP_MS = 2 * 60 * 60_000L
+    private const val APP_OPEN_FIRST_DAY_MS = 6 * 60 * 60_000L
     private const val AD_TTL_MS = 55 * 60_000L
     private const val APP_OPEN_TTL_MS = 4 * 60 * 60_000L
     const val REWARD_DURATION_MS = 24 * 60 * 60_000L

@@ -267,7 +267,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /** Çıkışında reklam molası verilebilecek ekranlar (Kur'an, ezan ve vakit ekranları hariç) */
     private val adExitScreens = setOf(
         AppScreen.DUAS, AppScreen.ASMAUL_HUSNA, AppScreen.ZAKAT_CALCULATOR, AppScreen.QIBLA,
-        AppScreen.RAMAZAN_HATIM, AppScreen.TOPICS, AppScreen.KAZA_NAMAZ
+        AppScreen.RAMAZAN_HATIM, AppScreen.TOPICS, AppScreen.KAZA_NAMAZ,
+        AppScreen.TASBIH, AppScreen.GREETINGS, AppScreen.PRAYER_TRACKER
     )
     private var currentDayKey = UserPreferences.dayKey()
 
@@ -434,8 +435,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val stack = _uiState.value.navigationStack.toMutableList()
         if (stack.size > 1) {
             val leaving = stack.removeAt(stack.lastIndex)
+            // Kur'an okuyucudan çıkarken (ses çalmıyorsa) bir reklam molası; okuma/dinleme sırasında asla
+            val readerBreak = leaving == AppScreen.QURAN_READER && _uiState.value.playerState.status != com.eavisionlabs.nurvakti.data.PlaybackStatus.PLAYING && _uiState.value.playerState.status != com.eavisionlabs.nurvakti.data.PlaybackStatus.BUFFERING
             if (leaving == AppScreen.QURAN_READER && _uiState.value.playerState.ayahMode) audioPlayerManager.stop()
-            if (leaving in adExitScreens || (leaving == AppScreen.TASBIH && tasbihGoalHitThisVisit)) {
+            if (leaving in adExitScreens || readerBreak) {
                 tasbihGoalHitThisVisit = false
                 _events.tryEmit(UiEvent.AdBreak)
             }
