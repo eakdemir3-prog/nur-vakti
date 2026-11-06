@@ -58,17 +58,9 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                     val text = "${city.displayName} • ${PrayerCalculationEngine.formatTime(e.time, tz)}"
                     when (pref) {
                         NotificationPreference.DISABLED -> Unit
-                        NotificationPreference.AZAN -> {
-                            val i = Intent(context, AdhanService::class.java)
-                                .putExtra(AdhanService.EXTRA_TITLE, title)
-                                .putExtra(AdhanService.EXTRA_TEXT, text)
-                            try {
-                                ContextCompat.startForegroundService(context, i)
-                            } catch (_: Exception) {
-                                // Ön plan servisi başlatılamazsa sesli bildirime düş
-                                postPrayer(context, NotificationHelper.CH_PRAYER_SOUND, e.prayerIndex, title, text)
-                            }
-                        }
+                        // Ezan, bildirimin kendi sesi olarak çalar (bildirim kaydırılınca susar)
+                        NotificationPreference.AZAN ->
+                            postPrayer(context, SoundChannels.adhanChannel(context), e.prayerIndex, title, text, stoppable = true)
                         NotificationPreference.NOTIFICATION_SOUND ->
                             postPrayer(context, NotificationHelper.CH_PRAYER_SOUND, e.prayerIndex, title, text)
                         NotificationPreference.SILENT ->
@@ -140,30 +132,39 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                     val imsak = PrayerCalculationEngine.timesForDate(city, java.util.Calendar.getInstance(tz).apply { timeInMillis = e.time + 6 * 60 * 60_000L })[0]
                     val text = if (sahur) String.format(t("İmsak %s • Hayırlı sahurlar"), PrayerCalculationEngine.formatTime(imsak, tz))
                     else t("Gecenin son üçte biri başladı. Dualarınız kabul olsun.")
-                    val i = Intent(context, AdhanService::class.java)
-                        .putExtra(AdhanService.EXTRA_TITLE, title)
-                        .putExtra(AdhanService.EXTRA_TEXT, text)
-                        .putExtra(AdhanService.EXTRA_WAKE, true)
-                    try {
-                        ContextCompat.startForegroundService(context, i)
-                    } catch (_: Exception) {
-                        postPrayer(context, NotificationHelper.CH_PRAYER_SOUND, 7, title, text)
-                    }
+                    postPrayer(context, SoundChannels.wakeChannel(context), 7, title, text, stoppable = true)
                 }
                 PrayerAlarmScheduler.Kind.REFRESH -> Unit
             }
         }
 
-        private fun postPrayer(context: Context, channel: String, index: Int, title: String, text: String) {
-            NotificationHelper.notify(
-                context, NotificationHelper.ID_PRAYER_BASE + index,
-                NotificationHelper.base(context, channel)
-                    .setContentTitle(title).setContentText(text)
-                    .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setContentIntent(NotificationHelper.openAppIntent(context, 30 + index, "PRAYER_TIMES"))
-            )
+        private fun postPrayer(context: Context, channel: String, index: Int, title: String, text: String, stoppable: Boolean = false) {
+            val id = NotificationHelper.ID_PRAYER_BASE + index
+            val b = NotificationHelper.base(context, channel)
+                .setContentTitle(title).setContentText(text)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(NotificationHelper.openAppIntent(context, 30 + index, "PRAYER_TIMES"))
+            if (stoppable) {
+                // "Sustur": bildirimi kaldırır, ses de durur
+                val pi = android.app.PendingIntent.getBroadcast(
+                    context, 500 + index,
+                    Intent(context, DismissReceiver::class.java).putExtra(DismissReceiver.EXTRA_ID, id),
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+                )
+                b.addAction(0, t("Sustur"), pi)
+            }
+            NotificationHelper.notify(context, id, b)
         }
+    }
+}
+
+/** Bildirimdeki "Sustur": bildirimi kaldırır (ses durur) */
+class DismissReceiver : BroadcastReceiver() {
+    companion object { const val EXTRA_ID = "id" }
+    override fun onReceive(context: Context, intent: Intent) {
+        val id = intent.getIntExtra(EXTRA_ID, -1)
+        if (id >= 0) NotificationHelper.cancel(context, id)
     }
 }
 

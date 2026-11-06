@@ -466,7 +466,7 @@ fun NurVaktiApp(
         snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets.safeDrawing
     ) { innerPadding ->
-        val soundPlaying by com.eavisionlabs.nurvakti.notify.AdhanService.playing.collectAsState()
+        val soundPlaying by com.eavisionlabs.nurvakti.notify.SoundChannels.previewPlaying.collectAsState()
         // Dış Scaffold'un bıraktığı boşluklar tüketilir; alt ekranların kendi üst çubukları durum çubuğu boşluğunu ikinci kez eklemesin
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             when (uiState.currentScreen) {
@@ -663,7 +663,7 @@ fun NurVaktiApp(
                         Spacer(Modifier.width(10.dp))
                         Text(t("Ses çalıyor"), color = com.eavisionlabs.nurvakti.ui.theme.EmeraldDarkest, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.weight(1f))
                         Button(
-                            onClick = { com.eavisionlabs.nurvakti.notify.AdhanService.stop(context) },
+                            onClick = { com.eavisionlabs.nurvakti.notify.SoundChannels.stopPreview() },
                             colors = ButtonDefaults.buttonColors(containerColor = com.eavisionlabs.nurvakti.ui.theme.EmeraldDarkest, contentColor = com.eavisionlabs.nurvakti.ui.theme.GoldChampagne)
                         ) { Text(t("Durdur")) }
                     }

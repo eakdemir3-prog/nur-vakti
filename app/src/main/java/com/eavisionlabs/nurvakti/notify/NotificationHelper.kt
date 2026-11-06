@@ -59,11 +59,6 @@ object NotificationHelper {
             enableVibration(true)
             vibrationPattern = longArrayOf(0, 400, 200, 400, 200, 600)
         }
-        val adhan = NotificationChannel(CH_ADHAN, t("Ezan"), NotificationManager.IMPORTANCE_HIGH).apply {
-            description = t("Ezan okunurken gösterilen bildirim")
-            setSound(null, null)
-            enableVibration(false)
-        }
         val reminder = NotificationChannel(CH_REMINDER, t("Vakit öncesi hatırlatma"), NotificationManager.IMPORTANCE_DEFAULT).apply {
             description = t("Vakit girmeden önce hatırlatır")
         }
@@ -76,7 +71,10 @@ object NotificationHelper {
         val general = NotificationChannel(CH_GENERAL, t("Cuma, kandil ve günün ayeti"), NotificationManager.IMPORTANCE_DEFAULT).apply {
             description = t("Cuma ve kandil hatırlatmaları, günün ayeti")
         }
-        nm.createNotificationChannels(listOf(sound, silent, vibrate, adhan, reminder, countdown, general))
+        nm.createNotificationChannels(listOf(sound, silent, vibrate, reminder, countdown, general))
+        // Ezan ve uyandırma sesleri kendi kanallarında
+        runCatching { SoundChannels.adhanChannel(context) }
+        runCatching { SoundChannels.wakeChannel(context) }
     }
 
     fun canPost(context: Context): Boolean {

@@ -164,10 +164,10 @@ fun SettingsScreen(
                         if (uiState.adhanSoundName != null) {
                             TextButton(onClick = { viewModel.setAdhanSound(null, null) }) { Text(t("Varsayılana dön")) }
                         }
-                        val adhanPlaying by com.eavisionlabs.nurvakti.notify.AdhanService.playing.collectAsState()
+                        val adhanPlaying by com.eavisionlabs.nurvakti.notify.SoundChannels.previewPlaying.collectAsState()
                         val ctx = androidx.compose.ui.platform.LocalContext.current
                         TextButton(onClick = {
-                            if (adhanPlaying) com.eavisionlabs.nurvakti.notify.AdhanService.stop(ctx) else viewModel.previewAdhan()
+                            if (adhanPlaying) com.eavisionlabs.nurvakti.notify.SoundChannels.stopPreview() else viewModel.previewAdhan()
                         }) { Text(if (adhanPlaying) t("Durdur") else t("Dinle")) }
                     }
                     SettingRow(
@@ -216,10 +216,10 @@ fun SettingsScreen(
                         Icons.Default.Bedtime, uiState.tahajjudAlarm
                     ) { viewModel.setTahajjudAlarm(it) }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        val wakePlaying by com.eavisionlabs.nurvakti.notify.AdhanService.playing.collectAsState()
+                        val wakePlaying by com.eavisionlabs.nurvakti.notify.SoundChannels.previewPlaying.collectAsState()
                         val ctx2 = androidx.compose.ui.platform.LocalContext.current
                         TextButton(onClick = {
-                            if (wakePlaying) com.eavisionlabs.nurvakti.notify.AdhanService.stop(ctx2) else viewModel.previewWakeTone()
+                            if (wakePlaying) com.eavisionlabs.nurvakti.notify.SoundChannels.stopPreview() else viewModel.previewWakeTone()
                         }) { Text(if (wakePlaying) t("Durdur") else t("Sesi dinle")) }
                     }
                 }

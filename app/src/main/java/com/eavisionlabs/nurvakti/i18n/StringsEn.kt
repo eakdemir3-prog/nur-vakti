@@ -644,6 +644,11 @@ object StringsEn {
         "Şimdi değil" to "Not now",
         "NurVakti ezanı (telefonunuzdan başka bir kayıt da seçebilirsiniz)" to "NurVakti adhan (you can also pick another recording from your phone)",
         "Ses çalınamadı" to "Sound could not be played",
-        "Ses çalıyor" to "Sound playing"
+        "Ses çalıyor" to "Sound playing",
+        "Huzurlu ney sesiyle uyandırır" to "Wakes you with a calm ney tone",
+        "Namaz vakti girdiğinde ezan sesiyle uyarır" to "Plays the adhan when prayer time begins",
+        "Sahur ve teheccüd alarmı" to "Suhoor & tahajjud alarm",
+        "Ses dosyası açılamadı. Başka bir dosya deneyin." to "The sound file could not be opened. Try another file.",
+        "Sustur" to "Silence"
     )
 }

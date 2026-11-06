@@ -1093,11 +1093,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Uyandırma sesini 10 sn dinlet */
     fun previewWakeTone() {
-        val i = Intent(app, com.eavisionlabs.nurvakti.notify.AdhanService::class.java)
-            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_TITLE, t("Uyandırma sesi"))
-            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_WAKE, true)
-            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_PREVIEW, true)
-        runCatching { androidx.core.content.ContextCompat.startForegroundService(app, i) }
+        com.eavisionlabs.nurvakti.notify.SoundChannels.previewWake(app)
     }
 
     fun setPreReminderMinutes(m: Int) {
@@ -1122,19 +1118,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 app.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } catch (_: Exception) {}
         }
+        val ok = if (uri != null) com.eavisionlabs.nurvakti.notify.SoundChannels.importCustomAdhan(app, uri)
+        else { com.eavisionlabs.nurvakti.notify.SoundChannels.clearCustomAdhan(app); true }
+        if (!ok) { showMessage(t("Ses dosyası açılamadı. Başka bir dosya deneyin.")); return }
         prefs.adhanSoundUri = uri?.toString()
         prefs.adhanSoundName = name
+        // Yeni sesle ezan kanalını hemen hazırla
+        com.eavisionlabs.nurvakti.notify.SoundChannels.adhanChannel(app)
         refreshNotificationSettings()
     }
 
     /** Seçili ezan sesini dener (10 sn sonra kendiliğinden durmaz; bildirimden durdurulur) */
     fun previewAdhan() {
-        val i = Intent(app, com.eavisionlabs.nurvakti.notify.AdhanService::class.java)
-            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_TITLE, t("Ezan sesi deneniyor"))
-            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_TEXT, t("Durdurmak için dokunun"))
-            .putExtra(com.eavisionlabs.nurvakti.notify.AdhanService.EXTRA_PREVIEW, true)
-        try { androidx.core.content.ContextCompat.startForegroundService(app, i) } catch (_: Exception) {}
+        com.eavisionlabs.nurvakti.notify.SoundChannels.previewAdhan(app)
     }
+
 
     fun setPrayerAdjustment(index: Int, minutes: Int) {
         prefs.setPrayerAdjustment(index, minutes)

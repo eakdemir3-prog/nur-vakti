@@ -644,6 +644,11 @@ object StringsAr {
         "Şimdi değil" to "ليس الآن",
         "NurVakti ezanı (telefonunuzdan başka bir kayıt da seçebilirsiniz)" to "أذان نور وقتي (يمكنك أيضًا اختيار تسجيل آخر من هاتفك)",
         "Ses çalınamadı" to "تعذر تشغيل الصوت",
-        "Ses çalıyor" to "الصوت قيد التشغيل"
+        "Ses çalıyor" to "الصوت قيد التشغيل",
+        "Huzurlu ney sesiyle uyandırır" to "يوقظك بصوت ناي هادئ",
+        "Namaz vakti girdiğinde ezan sesiyle uyarır" to "يشغّل الأذان عند دخول وقت الصلاة",
+        "Sahur ve teheccüd alarmı" to "منبه السحور والتهجد",
+        "Ses dosyası açılamadı. Başka bir dosya deneyin." to "تعذر فتح ملف الصوت. جرّب ملفًا آخر.",
+        "Sustur" to "إسكات"
     )
 }
