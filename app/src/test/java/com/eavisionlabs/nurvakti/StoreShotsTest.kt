@@ -69,6 +69,7 @@ class StoreShotsTest {
         )
     }
 
+    @Composable
     private fun bars(s: UiState, screen: AppScreen, body: @Composable () -> Unit) {
         androidx.compose.material3.Scaffold(
             topBar = { NurVaktiTopBar(s.selectedCity, {}, {}, {}) },
