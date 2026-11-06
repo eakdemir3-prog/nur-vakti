@@ -643,6 +643,7 @@ object StringsEn {
         "Ücretsiz deneme %d gün sonra yeniden açılır." to "The free trial is available again in %d days.",
         "Şimdi değil" to "Not now",
         "NurVakti ezanı (telefonunuzdan başka bir kayıt da seçebilirsiniz)" to "NurVakti adhan (you can also pick another recording from your phone)",
-        "Ses çalınamadı" to "Sound could not be played"
+        "Ses çalınamadı" to "Sound could not be played",
+        "Ses çalıyor" to "Sound playing"
     )
 }

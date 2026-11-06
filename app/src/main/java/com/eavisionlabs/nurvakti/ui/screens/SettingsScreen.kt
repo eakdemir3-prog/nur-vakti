@@ -164,7 +164,11 @@ fun SettingsScreen(
                         if (uiState.adhanSoundName != null) {
                             TextButton(onClick = { viewModel.setAdhanSound(null, null) }) { Text(t("Varsayılana dön")) }
                         }
-                        TextButton(onClick = { viewModel.previewAdhan() }) { Text(t("Dinle")) }
+                        val adhanPlaying by com.eavisionlabs.nurvakti.notify.AdhanService.playing.collectAsState()
+                        val ctx = androidx.compose.ui.platform.LocalContext.current
+                        TextButton(onClick = {
+                            if (adhanPlaying) com.eavisionlabs.nurvakti.notify.AdhanService.stop(ctx) else viewModel.previewAdhan()
+                        }) { Text(if (adhanPlaying) t("Durdur") else t("Dinle")) }
                     }
                     SettingRow(
                         title = t("Sistem bildirim ayarları"),
@@ -212,7 +216,11 @@ fun SettingsScreen(
                         Icons.Default.Bedtime, uiState.tahajjudAlarm
                     ) { viewModel.setTahajjudAlarm(it) }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = { viewModel.previewWakeTone() }) { Text(t("Sesi dinle")) }
+                        val wakePlaying by com.eavisionlabs.nurvakti.notify.AdhanService.playing.collectAsState()
+                        val ctx2 = androidx.compose.ui.platform.LocalContext.current
+                        TextButton(onClick = {
+                            if (wakePlaying) com.eavisionlabs.nurvakti.notify.AdhanService.stop(ctx2) else viewModel.previewWakeTone()
+                        }) { Text(if (wakePlaying) t("Durdur") else t("Sesi dinle")) }
                     }
                 }
             }

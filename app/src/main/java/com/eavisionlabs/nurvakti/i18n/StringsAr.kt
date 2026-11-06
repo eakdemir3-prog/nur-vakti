@@ -643,6 +643,7 @@ object StringsAr {
         "Ücretsiz deneme %d gün sonra yeniden açılır." to "تتاح التجربة المجانية مجددًا بعد %d أيام.",
         "Şimdi değil" to "ليس الآن",
         "NurVakti ezanı (telefonunuzdan başka bir kayıt da seçebilirsiniz)" to "أذان نور وقتي (يمكنك أيضًا اختيار تسجيل آخر من هاتفك)",
-        "Ses çalınamadı" to "تعذر تشغيل الصوت"
+        "Ses çalınamadı" to "تعذر تشغيل الصوت",
+        "Ses çalıyor" to "الصوت قيد التشغيل"
     )
 }

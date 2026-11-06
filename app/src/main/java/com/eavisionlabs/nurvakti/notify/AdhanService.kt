@@ -24,6 +24,14 @@ import com.eavisionlabs.nurvakti.i18n.t
 class AdhanService : Service() {
 
     companion object {
+        /** Ses çalıyor mu (bildirim izni kapalıyken uygulama içinden durdurabilmek için) */
+        val playing = kotlinx.coroutines.flow.MutableStateFlow(false)
+
+        fun stop(context: android.content.Context) {
+            runCatching { context.startService(Intent(context, AdhanService::class.java).setAction(ACTION_STOP)) }
+            playing.value = false
+        }
+
         const val EXTRA_TITLE = "title"
         const val EXTRA_TEXT = "text"
         const val ACTION_STOP = "com.eavisionlabs.nurvakti.STOP_ADHAN"
@@ -93,6 +101,7 @@ class AdhanService : Service() {
         val wake = intent?.getBooleanExtra(EXTRA_WAKE, false) == true
         val preview = intent?.getBooleanExtra(EXTRA_PREVIEW, false) == true
         previewMode = preview
+        playing.value = true
         requestFocus()
         if (wake) playWake(preview) else play()
         return START_NOT_STICKY
@@ -242,6 +251,7 @@ class AdhanService : Service() {
     }
 
     private fun stopSelfSafely() {
+        playing.value = false
         releasePlayer()
         abandonFocus()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -249,6 +259,7 @@ class AdhanService : Service() {
     }
 
     override fun onDestroy() {
+        playing.value = false
         releasePlayer()
         super.onDestroy()
     }

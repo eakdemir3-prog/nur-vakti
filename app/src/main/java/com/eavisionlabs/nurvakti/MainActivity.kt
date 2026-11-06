@@ -17,6 +17,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -458,6 +466,7 @@ fun NurVaktiApp(
         snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets.safeDrawing
     ) { innerPadding ->
+        val soundPlaying by com.eavisionlabs.nurvakti.notify.AdhanService.playing.collectAsState()
         // Dış Scaffold'un bıraktığı boşluklar tüketilir; alt ekranların kendi üst çubukları durum çubuğu boşluğunu ikinci kez eklemesin
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             when (uiState.currentScreen) {
@@ -639,6 +648,26 @@ fun NurVaktiApp(
                     onEnableNotifications = { requestNotifications() },
                     onShareImage = { activity.shareImage(it) }
                 )
+            }
+        
+            // Ses çalarken (bildirim izni kapalı olsa da) uygulama içinden durdurma çubuğu
+            if (soundPlaying) {
+                Surface(
+                    modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter).padding(12.dp).fillMaxWidth(),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+                    color = com.eavisionlabs.nurvakti.ui.theme.GoldChampagne,
+                    shadowElevation = 6.dp
+                ) {
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = com.eavisionlabs.nurvakti.ui.theme.EmeraldDarkest)
+                        Spacer(Modifier.width(10.dp))
+                        Text(t("Ses çalıyor"), color = com.eavisionlabs.nurvakti.ui.theme.EmeraldDarkest, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.weight(1f))
+                        Button(
+                            onClick = { com.eavisionlabs.nurvakti.notify.AdhanService.stop(context) },
+                            colors = ButtonDefaults.buttonColors(containerColor = com.eavisionlabs.nurvakti.ui.theme.EmeraldDarkest, contentColor = com.eavisionlabs.nurvakti.ui.theme.GoldChampagne)
+                        ) { Text(t("Durdur")) }
+                    }
+                }
             }
         }
     }
