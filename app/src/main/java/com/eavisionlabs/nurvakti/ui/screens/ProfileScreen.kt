@@ -82,20 +82,25 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.width(14.dp))
 
-                    Column {
+                    Column(Modifier.weight(1f)) {
                         Text(
-                            text = t("Mümin Kul"),
+                            text = uiState.accountName?.takeIf { it.isNotBlank() } ?: t("Mümin Kul"),
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         Text(
-                            text = "Konum: ${uiState.selectedCity.displayName}, ${uiState.selectedCity.country}",
+                            text = "${uiState.selectedCity.displayName}, ${uiState.selectedCity.country}",
+                            maxLines = 2,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
-                            text = t("Cihaz İçi Güvenli Kayıt • Üyelik Zorunlu Değildir"),
+                            text = if (uiState.accountEmail != null) t("Kayıtlarınız Google Drive'a yedeklenir")
+                                else t("Cihaz İçi Güvenli Kayıt • Üyelik Zorunlu Değildir"),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.primary,
                                 fontSize = 10.sp

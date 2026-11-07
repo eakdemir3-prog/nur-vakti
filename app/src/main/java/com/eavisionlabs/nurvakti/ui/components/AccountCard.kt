@@ -92,16 +92,31 @@ fun AccountCard(uiState: UiState, actions: AccountActions, modifier: Modifier = 
                     style = MaterialTheme.typography.labelMedium, color = GoldChampagne
                 )
                 Spacer(Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = actions.backup, enabled = !uiState.cloudBusy, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
+                // Büyük yazı boyutunda düğmeler alt alta dizilir, yazılar kesilmez
+                val big = androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.1f
+                val backupBtn: @Composable (Modifier) -> Unit = { m ->
+                    OutlinedButton(onClick = actions.backup, enabled = !uiState.cloudBusy, modifier = m, shape = RoundedCornerShape(12.dp)) {
                         Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(t("Yedekle"), maxLines = 1)
+                        Text(t("Yedekle"), maxLines = 1, softWrap = false)
                     }
-                    OutlinedButton(onClick = { confirmRestore = true }, enabled = !uiState.cloudBusy, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
+                }
+                val restoreBtn: @Composable (Modifier) -> Unit = { m ->
+                    OutlinedButton(onClick = { confirmRestore = true }, enabled = !uiState.cloudBusy, modifier = m, shape = RoundedCornerShape(12.dp)) {
                         Icon(Icons.Default.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(t("Geri yükle"), maxLines = 1)
+                        Text(t("Geri yükle"), maxLines = 1, softWrap = false)
+                    }
+                }
+                if (big) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        backupBtn(Modifier.fillMaxWidth())
+                        restoreBtn(Modifier.fillMaxWidth())
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        backupBtn(Modifier.weight(1f))
+                        restoreBtn(Modifier.weight(1f))
                     }
                 }
                 ToggleRow(t("Otomatik yedekleme"), t("Günde bir kez, uygulama açıldığında"), Icons.Default.Autorenew, uiState.cloudAutoBackup) { actions.setAuto(it) }
@@ -156,13 +171,18 @@ fun UserIdRow(userId: String?, modifier: Modifier = Modifier) {
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(start = 12.dp, end = 2.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(t("Kullanıcı kimliği"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Kimlik her zaman tek satır: yazı boyutu kullanıcı ayarından bağımsız
+                val fs = androidx.compose.ui.platform.LocalDensity.current.fontScale.coerceAtLeast(1f)
                 Text(
                     userId,
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace),
-                    color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        fontSize = androidx.compose.ui.unit.TextUnit(12.5f / fs, androidx.compose.ui.unit.TextUnitType.Sp)
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis
                 )
             }
             IconButton(onClick = copy) { Icon(Icons.Default.ContentCopy, contentDescription = t("Kopyala"), tint = GoldChampagne) }

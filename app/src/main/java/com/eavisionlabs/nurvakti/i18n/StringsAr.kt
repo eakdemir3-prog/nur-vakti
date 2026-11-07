@@ -649,6 +649,7 @@ object StringsAr {
         "Namaz vakti girdiğinde ezan sesiyle uyarır" to "يشغّل الأذان عند دخول وقت الصلاة",
         "Sahur ve teheccüd alarmı" to "منبه السحور والتهجد",
         "Ses dosyası açılamadı. Başka bir dosya deneyin." to "تعذر فتح ملف الصوت. جرّب ملفًا آخر.",
-        "Sustur" to "إسكات"
+        "Sustur" to "إسكات",
+        "Kayıtlarınız Google Drive'a yedeklenir" to "تُحفظ سجلاتك في Google Drive"
     )
 }

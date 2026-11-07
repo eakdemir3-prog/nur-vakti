@@ -649,6 +649,7 @@ object StringsEn {
         "Namaz vakti girdiğinde ezan sesiyle uyarır" to "Plays the adhan when prayer time begins",
         "Sahur ve teheccüd alarmı" to "Suhoor & tahajjud alarm",
         "Ses dosyası açılamadı. Başka bir dosya deneyin." to "The sound file could not be opened. Try another file.",
-        "Sustur" to "Silence"
+        "Sustur" to "Silence",
+        "Kayıtlarınız Google Drive'a yedeklenir" to "Your records are backed up to Google Drive"
     )
 }
